@@ -19,7 +19,22 @@ export const test = base.extend({
       await page.route((u) => u.origin === origin, (route) =>
         route.continue({ headers: { ...route.request().headers(), 'x-vercel-trusted-oidc-idp-token': token } }))
     }
+    // Every test also fails on any Content-Security-Policy violation (enforced or report-only),
+    // so interactive states (drawers, toggles, sliders, demo steps) are covered, not just page loads.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __csp?: string[] }
+      w.__csp = []
+      document.addEventListener('securitypolicyviolation', (e) => {
+        w.__csp!.push(`${e.disposition} ${e.effectiveDirective} ${e.blockedURI} @ ${location.pathname}${location.hash}`)
+      })
+    })
     await use(page)
+    if (!page.isClosed()) {
+      const csp = await page.evaluate(() => (window as unknown as { __csp?: string[] }).__csp ?? []).catch(() => [] as string[])
+      if (testInfo.status === testInfo.expectedStatus) {
+        expect(csp, 'CSP violations during this test').toEqual([])
+      }
+    }
     if (testInfo.status !== testInfo.expectedStatus) {
       const list = [...inflight.values()]
       const NL = String.fromCharCode(10)

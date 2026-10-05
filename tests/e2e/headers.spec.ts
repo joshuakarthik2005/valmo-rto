@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures'
 
-// Security headers come from vercel.json, so they exist only on Vercel deployments (preview or production),
-// not on the local `vite preview` server. These tests skip locally.
+// Security headers come from vercel.json. Vercel applies them on deployments; locally and in CI,
+// scripts/serve.mjs applies the same file, so these tests run everywhere.
 const ROUTES = ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo']
 
 function authHeaders(): Record<string, string> {
@@ -9,9 +9,7 @@ function authHeaders(): Record<string, string> {
   return t ? { 'x-vercel-trusted-oidc-idp-token': t } : {}
 }
 
-test.describe('security headers (deployed only)', () => {
-  test.skip(({ baseURL }) => !baseURL || baseURL.includes('localhost'), 'headers are set by Vercel, not by vite preview')
-
+test.describe('security headers', () => {
   test('app pages send the baseline headers and a CSP', async ({ request, baseURL }) => {
     const res = await request.get(`${baseURL}/`, { headers: authHeaders() })
     const h = res.headers()
@@ -32,14 +30,13 @@ test.describe('security headers (deployed only)', () => {
   })
 })
 
-test('no CSP violations on any route', async ({ page, baseURL }) => {
-  test.skip(!baseURL || baseURL.includes('localhost'), 'CSP is set by Vercel, not by vite preview')
-  await page.addInitScript(() => {
+test('no CSP violations on any route', async ({ page }) => {  await page.addInitScript(() => {
     ;(window as unknown as { __csp: string[] }).__csp = []
     document.addEventListener('securitypolicyviolation', (e) => {
       ;(window as unknown as { __csp: string[] }).__csp.push(`${e.disposition} ${e.effectiveDirective} ${e.blockedURI}`)
     })
   })
+  await expect.poll(async () => (await page.request.get('/')).headers()['content-security-policy']).toBeTruthy()
   const found: string[] = []
   for (const r of ROUTES) {
     await page.goto(`/#${r}`)
