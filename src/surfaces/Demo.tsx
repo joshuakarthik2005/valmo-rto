@@ -46,7 +46,7 @@ const STEPS: Step[] = [
   { title: 'Verify it yourself', caption: 'The code, the tests that check every number above, and this replay are all public. Scan the code or open the repo.', surface: null, link: '#/', secs: 9 },
 ]
 
-export const DEMO_SECONDS = STEPS.reduce((s, x) => s + x.secs, 0)
+const DEMO_SECONDS = STEPS.reduce((s, x) => s + x.secs, 0)
 
 export default function Demo() {
   const { params } = useRoute()
