@@ -1,9 +1,9 @@
 name: CI
 
+# Runs on every branch push; GitHub shows these checks on the branch's pull request too.
 on:
-  pull_request:
   push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
