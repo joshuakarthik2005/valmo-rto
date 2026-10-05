@@ -247,7 +247,7 @@ function Waterfall({ data, max }: { data: { key: string; label: string; value: n
         {data.map((d) => (
           <div key={d.key} className="relative flex-1 group" tabIndex={0} aria-label={`${d.label}: ${lakh(d.value, 2)}`}>
             <div className="absolute inset-x-0 rounded transition-all duration-300" style={{ bottom: `${(d.base / max) * 100}%`, height: `${Math.max(0.6, (d.bar / max) * 100)}%`, background: d.color }} />
-            <span className="num absolute inset-x-0 text-center text-[13px] font-semibold text-ink" style={{ bottom: `calc(${((d.base + d.bar) / max) * 100}% + 4px)` }}>
+            <span className="num absolute -inset-x-2 text-center whitespace-nowrap text-[11px] sm:text-[13px] font-semibold text-ink" style={{ bottom: `calc(${((d.base + d.bar) / max) * 100}% + 4px)` }}>
               {d.value < 0 ? '' : d.kind === 'delta' ? '+' : ''}{lakh(d.value, d.kind === 'delta' ? 2 : 1)}
             </span>
           </div>
