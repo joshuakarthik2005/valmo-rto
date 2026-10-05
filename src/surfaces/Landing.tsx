@@ -66,7 +66,8 @@ export default function Landing() {
         </ol>
         <p className="mt-4 text-ink-soft">
           Also: the <a className="underline text-plum font-semibold" href="#/hub">hub control tower</a> and the{' '}
-          <a className="underline text-plum font-semibold" href="#/pilot">pilot plan</a>.
+          <a className="underline text-plum font-semibold" href="#/pilot">pilot plan</a>, and{' '}
+          <a className="underline text-plum font-semibold" href="#/architecture">how it would plug into Valmo</a>.
         </p>
       </section>
 
