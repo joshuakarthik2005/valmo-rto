@@ -57,8 +57,30 @@ export default function Hub() {
 
       <section aria-labelledby="ord-h" className="card mb-6">
         <h2 id="ord-h" className="text-xl font-bold">Orders before dispatch</h2>
-        <div className="mt-3 -mx-5 sm:mx-0 overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-[15px]">
+        {/* Below 768 px: one card per order, so risk, nudge status and the dispatch timer are visible without scrolling sideways */}
+        <ul className="mt-3 md:hidden space-y-3" data-testid="orders-cards" aria-label="Orders with RTO risk, nudge status and dispatch SLA">
+          {ORDERS.map((o) => {
+            const r = orderRisk(o)
+            const left = o.slaMin * 60 - elapsed
+            return (
+              <li key={o.id} className="rounded-xl border border-plum/10 p-3">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="font-semibold text-ink">{o.id}</p>
+                  <p className={`num font-semibold ${o.nudge === 'cancelled' ? 'text-ink-soft' : left < 30 * 60 ? 'text-magenta-600' : 'text-ink'}`}>
+                    <span className="sr-only">Dispatch in </span>{o.nudge === 'cancelled' ? 'Not dispatching' : mmss(left)}
+                  </p>
+                </div>
+                <p className="text-sm text-ink-soft">{o.item} · {o.area} {o.pin} · {o.band} · {o.cod ? `COD ${rupees(o.price)}` : 'Prepaid'}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <span className={`chip ${TIER[r.tier]}`}>{r.tier} · {pctTrim(Math.round(r.est * 1000) / 1000)}</span>
+                  <span className={`chip ${NUDGE[o.nudge].cls}`}>{NUDGE[o.nudge].label}</span>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+        <div className="mt-3 hidden md:block overflow-x-auto" data-testid="orders-table">
+          <table className="w-full min-w-[680px] text-left text-[15px]">
             <caption className="sr-only">Orders with RTO risk, nudge status and dispatch SLA</caption>
             <thead className="text-ink-soft text-sm">
               <tr><th className="py-2 px-3">Order</th><th className="px-3">Area</th><th className="px-3">Pay</th><th className="px-3">RTO risk</th><th className="px-3">Nudge status</th><th className="px-3">Dispatch in</th></tr>
