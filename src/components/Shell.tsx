@@ -5,12 +5,13 @@ import { VerifyCard } from './VerifyCard'
 
 export function Wordmark() {
   return (
-    <a href="#/" className="flex items-baseline gap-1.5 font-display text-xl font-bold text-plum whitespace-nowrap">
+    <a href="#/" className="flex items-baseline gap-1.5 font-display text-lg sm:text-xl font-bold text-plum whitespace-nowrap">
       <span>Meesho</span>
       <span aria-hidden className="text-coral">×</span>
       <span className="sr-only">by</span>
       <span>Valmo</span>
-      <span className="ml-1 hidden sm:inline font-sans text-sm font-semibold text-ink-soft">Route Cause</span>
+      {/* Says plainly that this is a team prototype, not official co-branding */}
+      <span className="ml-1.5 self-center rounded-full bg-plum-100 px-2 py-0.5 font-sans text-xs font-semibold text-plum" data-testid="prototype-tag">Route Cause prototype</span>
     </a>
   )
 }
