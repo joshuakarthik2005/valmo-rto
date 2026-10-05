@@ -39,6 +39,8 @@ export default function Impact() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
+    // Only own the URL when shown as its own page (not inside the guided demo)
+    if (!window.location.hash.startsWith('#/impact')) return
     const d = defaultInputs()
     const p = new URLSearchParams()
     if (c !== 'conservative') p.set('case', c)
