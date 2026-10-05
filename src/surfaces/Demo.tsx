@@ -3,21 +3,31 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useRoute, setParams } from '../lib/router'
 import { baseline, combined, replyValue, move2PerParcel, lakh, rupees, pct, pctTrim, count, defaultInputs } from '../lib/model'
 import { VerifyCard } from '../components/VerifyCard'
+// Already in the main bundle (it is the home page), so no extra round trip for step 1
+import Landing from './Landing'
 
-const Landing = lazy(() => import('./Landing'))
-const Customer = lazy(() => import('./Customer'))
-const Rider = lazy(() => import('./Rider'))
-const Hub = lazy(() => import('./Hub'))
-const Resale = lazy(() => import('./Resale'))
-const Impact = lazy(() => import('./Impact'))
-const Pilot = lazy(() => import('./Pilot'))
+const load = {
+  customer: () => import('./Customer'),
+  rider: () => import('./Rider'),
+  hub: () => import('./Hub'),
+  resale: () => import('./Resale'),
+  impact: () => import('./Impact'),
+  pilot: () => import('./Pilot'),
+}
+const Customer = lazy(load.customer)
+const Rider = lazy(load.rider)
+const Hub = lazy(load.hub)
+const Resale = lazy(load.resale)
+const Impact = lazy(load.impact)
+const Pilot = lazy(load.pilot)
+
 
 const i = defaultInputs()
 const b = baseline()
 const lo = combined('conservative')
 const hi = combined('ceiling')
 
-interface Step { title: string; caption: string; surface: LazyExoticComponent<ComponentType> | null; link: string; secs: number }
+interface Step { title: string; caption: string; surface: LazyExoticComponent<ComponentType> | ComponentType | null; link: string; secs: number }
 
 const STEPS: Step[] = [
   { title: 'The problem', caption: `${pctTrim(b.rtoRate)} of orders come back: ${count(b.rtos)} per lakh. Counting only the ${rupees(i.reverseCost)} return leg, that is ${lakh(b.trueDrag)} of true drag, and COD orders return ${b.codGap.toFixed(1)}× as often as prepaid.`, surface: Landing, link: '#/', secs: 12 },
@@ -46,6 +56,11 @@ export default function Demo() {
   useEffect(() => { setN(start) }, [start])
 
   useEffect(() => { setT(0); setParams('/demo', new URLSearchParams({ step: String(n + 1) })) }, [n])
+  // Warm the next surface so Skip never shows a loading state
+  useEffect(() => {
+    const id = setTimeout(() => Object.values(load).forEach((f) => void f()), 4000)
+    return () => clearTimeout(id)
+  }, [])
   useEffect(() => {
     if (!playing) return
     const id = setInterval(() => setT((x) => x + 0.1), 100)

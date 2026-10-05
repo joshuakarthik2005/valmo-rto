@@ -1,20 +1,22 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, type ComponentType } from 'react'
 import { useRoute } from './lib/router'
 import { Shell } from './components/Shell'
 import Landing from './surfaces/Landing'
 
 // framer-motion loads with the first interactive surface, not with the landing page
-const MotionBoundary = lazy(() => import('./components/MotionBoundary'))
+const loadMotion = () => import('./components/MotionBoundary')
+const MotionBoundary = lazy(loadMotion)
 
-const PAGES: Record<string, ReturnType<typeof lazy>> = {
-  '/customer': lazy(() => import('./surfaces/Customer')),
-  '/rider': lazy(() => import('./surfaces/Rider')),
-  '/hub': lazy(() => import('./surfaces/Hub')),
-  '/resale': lazy(() => import('./surfaces/Resale')),
-  '/impact': lazy(() => import('./surfaces/Impact')),
-  '/pilot': lazy(() => import('./surfaces/Pilot')),
-  '/demo': lazy(() => import('./surfaces/Demo')),
-}
+const LOADERS = {
+  '/customer': () => import('./surfaces/Customer'),
+  '/rider': () => import('./surfaces/Rider'),
+  '/hub': () => import('./surfaces/Hub'),
+  '/resale': () => import('./surfaces/Resale'),
+  '/impact': () => import('./surfaces/Impact'),
+  '/pilot': () => import('./surfaces/Pilot'),
+  '/demo': () => import('./surfaces/Demo'),
+} as Record<string, () => Promise<{ default: ComponentType }>>
+const PAGES = Object.fromEntries(Object.entries(LOADERS).map(([k, f]) => [k, lazy(f)]))
 const OgCard = lazy(() => import('./surfaces/OgCard'))
 
 const TITLES: Record<string, string> = {
@@ -25,6 +27,8 @@ const TITLES: Record<string, string> = {
 export function App() {
   const { path } = useRoute()
   const Page = PAGES[path]
+  // Start the surface and motion chunks together instead of one after the other
+  if (path in LOADERS) { void LOADERS[path](); void loadMotion() }
   useEffect(() => {
     document.title = `${TITLES[path] ?? 'Not found'} · Route Cause (prototype)`
     window.scrollTo(0, 0)
