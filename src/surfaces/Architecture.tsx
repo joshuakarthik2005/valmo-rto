@@ -1,4 +1,4 @@
-import { PageHeader, Callout } from '../components/ui'
+import { PageHeader, Callout, ScrollRegion } from '../components/ui'
 import { PIPELINE, EVENTS, DATA_NEEDED, INTEGRATIONS, BUILD_VS_INTEGRATE, FAILURE_MODES } from '../data/architecture'
 
 function Confirm() {
@@ -35,7 +35,7 @@ export default function Architecture() {
       <section aria-labelledby="ev-h" className="card mt-6">
         <h2 id="ev-h" className="text-xl font-bold">Event schema (proposed)</h2>
         <p className="text-ink-soft">Field names are illustrative. Every event carries an idempotency key (order_id + type + step).</p>
-        <div className="mt-3 overflow-x-auto">
+        <ScrollRegion label="Event schema table" className="mt-3">
           <table className="w-full min-w-[640px] text-left text-[15px]" data-testid="events">
             <caption className="sr-only">Proposed events with when they fire and their fields</caption>
             <thead className="text-sm text-ink-soft"><tr><th className="py-2 pr-3">Event</th><th className="pr-3">When</th><th className="pr-3">Fields</th><th>Source</th></tr></thead>
@@ -50,7 +50,7 @@ export default function Architecture() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       </section>
 
       <div className="grid lg:grid-cols-2 gap-6 mt-6">
@@ -84,7 +84,7 @@ export default function Architecture() {
 
       <section aria-labelledby="bvi-h" className="card mt-6">
         <h2 id="bvi-h" className="text-xl font-bold">Build or integrate</h2>
-        <div className="mt-3 overflow-x-auto">
+        <ScrollRegion label="Build or integrate table" className="mt-3">
           <table className="w-full min-w-[560px] text-left" data-testid="build-vs-integrate">
             <thead className="text-sm text-ink-soft"><tr><th className="py-2 pr-3">Part</th><th className="pr-3">Choice</th><th>Why</th></tr></thead>
             <tbody>
@@ -97,7 +97,7 @@ export default function Architecture() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       </section>
 
       <section aria-labelledby="fail-h" className="card mt-6">
