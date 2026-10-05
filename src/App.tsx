@@ -15,13 +15,14 @@ const LOADERS = {
   '/impact': () => import('./surfaces/Impact'),
   '/pilot': () => import('./surfaces/Pilot'),
   '/demo': () => import('./surfaces/Demo'),
+  '/architecture': () => import('./surfaces/Architecture'),
 } as Record<string, () => Promise<{ default: ComponentType }>>
 const PAGES = Object.fromEntries(Object.entries(LOADERS).map(([k, f]) => [k, lazy(f)]))
 const OgCard = lazy(() => import('./surfaces/OgCard'))
 
 const TITLES: Record<string, string> = {
   '/': 'Home', '/customer': 'Customer', '/rider': 'Rider app', '/hub': 'Hub control tower',
-  '/resale': 'Hub resale', '/impact': 'Impact simulator', '/pilot': 'Pilot plan', '/demo': 'Guided demo',
+  '/resale': 'Hub resale', '/impact': 'Impact simulator', '/pilot': 'Pilot plan', '/demo': 'Guided demo', '/architecture': 'Architecture',
 }
 
 export function App() {
