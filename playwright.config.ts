@@ -20,7 +20,8 @@ export default defineConfig({
     { name: 'desktop', use: { viewport: { width: 1440, height: 900 } } },
   ],
   webServer: process.env.BASE_URL ? undefined : {
-    command: CI ? 'npx vite preview --port 4173 --strictPort' : 'npm run build && npx vite preview --port 4173 --strictPort',
+    // scripts/serve.mjs applies vercel.json's headers (CSP included), so tests see production behaviour
+    command: CI ? 'node scripts/serve.mjs --port 4173' : 'npm run build && node scripts/serve.mjs --port 4173',
     port: 4173, timeout: 180_000, reuseExistingServer: !CI,
   },
 })

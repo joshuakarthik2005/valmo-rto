@@ -1,7 +1,7 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "npx vite preview --port 4173 --strictPort",
+      "startServerCommand": "node scripts/serve.mjs --port 4173",
       "startServerReadyPattern": "Local",
       "numberOfRuns": 3,
       "url": [
