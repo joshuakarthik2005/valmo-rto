@@ -14,7 +14,7 @@ test.afterEach(async () => {
 
 async function shot(page: Page, name: string, project: string) {
   await page.waitForTimeout(300)
-  await page.screenshot({ path: `docs/screens/${project}-${name}.png`, fullPage: project !== 'tablet' })
+  await page.screenshot({ path: `docs/screens/${project}-${name}.jpg`, type: 'jpeg', quality: 72, fullPage: project !== 'tablet' })
 }
 
 test('landing: judge path, badge and verify card', async ({ page }, info) => {

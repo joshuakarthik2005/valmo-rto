@@ -10,7 +10,7 @@ export default defineConfig({
   reporter: [['list']],
   use: { baseURL: BASE_URL, channel: 'chrome', trace: 'off' },
   projects: [
-    { name: 'mobile', use: { ...devices['Pixel 7'], channel: 'chrome', viewport: { width: 360, height: 780 } } },
+    { name: 'mobile', use: { ...devices['Pixel 7'], channel: 'chrome', viewport: { width: 360, height: 780 }, deviceScaleFactor: 1.5 } },
     { name: 'tablet', use: { viewport: { width: 768, height: 1024 } } },
     { name: 'desktop', use: { viewport: { width: 1440, height: 900 } } },
   ],
