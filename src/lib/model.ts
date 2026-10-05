@@ -221,16 +221,28 @@ export function resaleChecks(item: ResaleItem, i: Inputs = defaultInputs()) {
   return { checks, eligible: checks.every((c) => c.pass) }
 }
 
-/** Add business days (Mon-Fri) to a date. */
+/** Add (or, with a negative count, subtract) business days (Mon-Fri). */
 export function addBusinessDays(start: Date, days: number) {
   const d = new Date(start)
-  let left = days
+  const dir = days < 0 ? -1 : 1
+  let left = Math.abs(days)
   while (left > 0) {
-    d.setDate(d.getDate() + 1)
+    d.setDate(d.getDate() + dir)
     const wd = d.getDay()
     if (wd !== 0 && wd !== 6) left--
   }
   return d
+}
+
+/** Business days from a to b (0 if b is not after a). */
+export function businessDaysBetween(a: Date, b: Date) {
+  let n = 0
+  const d = new Date(a)
+  while (d < b) {
+    d.setDate(d.getDate() + 1)
+    if (d.getDay() !== 0 && d.getDay() !== 6 && d <= b) n++
+  }
+  return n
 }
 
 // ---------- Pilot ----------
@@ -271,4 +283,20 @@ export function pct(n: number, digits = 0) {
 /** Percentage that drops trailing zeros: 0.136 -> "13.6%", 0.0765 -> "7.65%", 0.17 -> "17%" */
 export function pctTrim(n: number) {
   return `${parseFloat((n * 100).toFixed(2))}%`
+}
+
+// ---------- Order risk (illustrative tiering for the demo manifest) ----------
+
+export function orderRisk(o: { band: 'near' | 'moderate' | 'far'; cod: boolean; firstAddress: boolean }, i: Inputs = defaultInputs()) {
+  const bandRate = { near: i.rtoNear, moderate: i.rtoModerate, far: i.rtoFar }[o.band]
+  const blended = baseline(i).rtoRate
+  const est = bandRate * ((o.cod ? i.codRto : i.prepaidRto) / blended)
+  const tier: 'High' | 'Medium' | 'Low' = o.cod && (o.band === 'far' || o.firstAddress) ? 'High' : o.cod ? 'Medium' : 'Low'
+  const reasons = [o.cod ? 'COD' : 'Prepaid', o.firstAddress ? 'first-time address' : null, o.band === 'far' ? 'far from hub' : null].filter(Boolean) as string[]
+  return { est, tier, reasons }
+}
+
+/** Resale price for the buyer, after the Move 2 discount. */
+export function resalePrice(price: number, i: Inputs = defaultInputs()) {
+  return price - i.m2BuyerDiscount
 }

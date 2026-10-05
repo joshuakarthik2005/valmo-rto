@@ -219,3 +219,13 @@ describe('Pilot sizing', () => {
     expect(p.minOrdersPerPin).toBe(50 * 13)
   })
 })
+
+describe('Business-day helpers', () => {
+  it('subtracting then counting business days round-trips', async () => {
+    const { businessDaysBetween } = await import('./model')
+    const mon = new Date(2026, 9, 5)
+    const back = addBusinessDays(mon, -5)
+    expect(back.getDate()).toBe(28) // Mon 28 Sep
+    expect(businessDaysBetween(back, mon)).toBe(5)
+  })
+})
