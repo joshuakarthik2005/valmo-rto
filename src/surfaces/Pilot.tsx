@@ -69,17 +69,17 @@ export default function Pilot() {
   const ref = PILOT_REFERENCE_SHIFT
   const refPts = (ref * 100).toFixed(0)
   const reachable = r.mde <= ref
+  // One target at a time: the headline speaks only to the target set in the calculator.
   const headline = [
     `With ${pins} treated and ${pins} control pincodes, ${perWeek} orders per pincode per week for ${weeks} weeks, and an ICC of ${String(+icc.toFixed(3))},`,
     `this pilot can detect a drop of about ${points(r.mde)} (from ${pct(p1, 1)} to about ${pct(Math.max(0, p1 - r.mde), 1)}).`,
-    reachable
-      ? `A ${refPts}-point shift is within reach of this design.`
-      : `A ${refPts}-point shift is not: it would need about ${count(r.pinsFor3)} pincodes per arm at this ICC, or ${count(r.byIcc.find((x) => x.icc === 0.01)?.pinsFor3 ?? NaN)} if the ICC were 0.01.`,
     r.detectable
-      ? `The ${points(shift)} target set above is detectable.`
-      : `The ${points(shift)} target set above is below what this design can detect; it would need about ${count(r.pinsForTarget)} pincodes per arm.`,
-    'Adding pincodes moves this; adding weeks barely does.',
+      ? `The ${(shift * 100).toFixed(1)}-point target is within reach.`
+      : `The ${(shift * 100).toFixed(1)}-point target is smaller than that, so detecting it would take about ${count(r.pinsForTarget)} pincodes per arm.`,
+    'More pincodes help; more weeks barely do.',
   ].join(' ')
+  const icc01 = r.byIcc.find((x) => x.icc === 0.01)?.pinsFor3
+  const icc05 = r.byIcc.find((x) => x.icc === 0.05)?.pinsFor3
 
   const upi = upiSwitch(A.upiDiscountAlt.value)
   const guardrails = [
@@ -147,10 +147,15 @@ export default function Pilot() {
             </dd>
           </div>
         </dl>
-        <div className="mt-3 rounded-xl border border-plum/15 p-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <span className="text-ink-soft">Pincodes per arm needed for a {refPts}-point shift at ICC {icc.toFixed(3)}:</span>
-          <span className="num text-2xl font-bold text-plum" data-testid="pins-for-3">{count(r.pinsFor3)}</span>
-          <span className="text-sm text-ink-soft">({perWeek} orders per pincode per week, {weeks} weeks)</span>
+        <div className="mt-3 rounded-xl border border-plum/15 p-3" data-testid="pins-box">
+          <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-ink-soft">Pincodes per arm needed for a {refPts}-point shift at ICC {String(+icc.toFixed(3))}:</span>
+            <span className="num text-2xl font-bold text-plum" data-testid="pins-for-3">{count(r.pinsFor3)}</span>
+          </p>
+          <p className="mt-1 text-ink">
+            {reachable ? `This design (${pins} per arm) already covers a ${refPts}-point shift.` : `This design has ${pins} per arm, so a ${refPts}-point shift is out of reach.`}
+            {' '}For comparison: {count(icc01 ?? NaN)} per arm at ICC 0.01 and {count(icc05 ?? NaN)} at ICC 0.05 ({perWeek} orders per pincode per week, {weeks} weeks).
+          </p>
         </div>
         {!isPlanned && <button className="btn-ghost mt-4" onClick={reset}>Reset to the planned design</button>}
       </section>

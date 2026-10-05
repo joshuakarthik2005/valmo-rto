@@ -148,8 +148,12 @@ test('pilot: 20 + 20 design, generated headline, pincodes beat weeks, guardrails
   const head = page.getByTestId('pilot-headline')
   await expect(head).toContainText('With 20 treated and 20 control pincodes, 50 orders per pincode per week for 13 weeks, and an ICC of 0.02')
   await expect(head).toContainText('detect a drop of about 4.6 points')
-  await expect(head).toContainText('The 3.4 points target set above is below what this design can detect; it would need about 38 pincodes per arm')
-  await expect(head).toContainText('A 3-point shift is not: it would need about 50 pincodes per arm at this ICC, or 27 if the ICC were 0.01')
+  await expect(head).toContainText('The 3.4-point target is smaller than that, so detecting it would take about 38 pincodes per arm')
+  // One target at a time: the 3-point comparison lives in the box, not the headline
+  await expect(head).not.toContainText('3-point')
+  const box = page.getByTestId('pins-box')
+  await expect(box).toContainText('a 3-point shift is out of reach')
+  await expect(box).toContainText('27 per arm at ICC 0.01 and 118 at ICC 0.05')
   await expect(page.getByTestId('n-unclustered')).toHaveText('1,759')
   await expect(page.getByTestId('mde')).toHaveText('4.6 pts')
   await expect(page.getByTestId('weeks-needed')).toHaveText('Never')
@@ -163,7 +167,8 @@ test('pilot: 20 + 20 design, generated headline, pincodes beat weeks, guardrails
   await page.locator('#pc-icc').fill('0')
   await expect(page.getByTestId('weeks-needed')).toHaveText('2')
   await expect(page.getByTestId('mde')).toHaveText('1.3 pts')
-  await expect(head).toContainText('A 3-point shift is within reach of this design')
+  await expect(head).toContainText('The 3.4-point target is within reach')
+  await expect(page.getByTestId('pins-box')).toContainText('already covers a 3-point shift')
   await expect(head).toContainText('and an ICC of 0,')
   await page.getByRole('button', { name: 'Reset to the planned design' }).click()
   await expect(page.getByTestId('mde')).toHaveText('4.6 pts')
@@ -201,10 +206,25 @@ test('keyboard: skip link and surface nav', async ({ page }) => {
   await expect(page).toHaveURL(/#\/customer/)
 })
 
-test('legacy prototype is preserved', async ({ page }) => {
+test('legacy prototype is preserved, archived and not indexed', async ({ page }) => {
   errors.length = 0
   await page.goto('/legacy/')
   await expect(page).toHaveTitle(/Route Cause/)
+  const banner = page.getByTestId('legacy-banner')
+  await expect(banner).toBeVisible()
+  await expect(banner).toContainText('Archived v1, superseded')
+  await expect(banner.getByRole('link', { name: /current prototype/ })).toHaveAttribute('href', '/')
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+})
+
+test('header: "Route Cause prototype" tag beside the wordmark at every width', async ({ page }) => {
+  await page.goto('/#/')
+  const tag = page.getByTestId('prototype-tag')
+  await expect(tag).toBeVisible()
+  await expect(tag).toHaveText('Route Cause prototype')
+  const [w, t] = await Promise.all([page.locator('header a[href="#/"]').boundingBox(), tag.boundingBox()])
+  expect(t!.x + t!.width).toBeLessThanOrEqual(page.viewportSize()!.width)
+  expect(Math.abs((t!.y + t!.height / 2) - (w!.y + w!.height / 2))).toBeLessThan(12)
 })
 
 test('verify card: one phone QR on large screens, wrapping repo link, four buttons', async ({ page }, info) => {
