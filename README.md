@@ -20,7 +20,7 @@ An interactive prototype for **Meesho DICE Challenge S3 (Business Track): "Reduc
 | Hub | `#/hub` | Control tower: risk, nudge status, SLA timers, flagged attempt marks, resale shelf countdown. |
 | Resale | `#/resale` | Refused parcel, eligibility check, nearby buyer match, auto invoice, next-day local delivery, or standard RTO after 5 business days. |
 | Impact | `#/impact` | Live waterfall, sliders, assumptions drawer with source tags, sensitivity, RTO gauge, shareable URL. |
-| Pilot | `#/pilot` | 20 pincodes against a matched control, 30-60-90 timeline, named metrics and guardrails (all simulated). |
+| Pilot | `#/pilot` | 10 treatment + 10 matched control pincodes, a cluster-aware power calculator (minimum detectable effect, pincodes vs weeks), a 30-60-90 timeline, metric definitions and guardrails. |
 
 ## Single source of truth
 
@@ -56,4 +56,4 @@ vercel deploy --prod   # production. Only after the PR is merged and every quali
 
 ## Stack
 
-Vite, React 18, TypeScript, Tailwind CSS, framer-motion, Recharts, vitest, Playwright, qrcode and jsqr.
+Vite, React 18, TypeScript, Tailwind CSS, framer-motion, vitest, Playwright, qrcode and jsqr. Charts are plain HTML/SVG; Recharts was removed in v3 to keep the route bundles small.

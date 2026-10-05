@@ -11,7 +11,7 @@ Open https://valmo-jet.vercel.app. Every screen carries a "Prototype: simulated 
 | 0:40 | Rider `#/rider` | **Mark customer unavailable**, then **Call customer**, **No answer**, and mark again | "No logged call means auto-reject. A logged, unanswered masked call is a verified attempt: the fee is protected and the customer gets a follow-up. No GPS anywhere." |
 | 0:52 | Resale `#/resale` | **Next step** through to the buyer match | "A refused ₹699 pair of sneakers passes six checks, is matched to a buyer 0.8 km away (same device blocked), and the hub only prints the auto-invoice. That is ₹74 net per parcel." |
 | 1:05 | Impact `#/impact` | Toggle **Ceiling**, then drag **Resale match rate** | "Sequenced, the two moves net ₹5.4L to ₹11.4L per lakh orders, 26% to 56% of the drag. Every slider shows its source. Share this link and the scenario comes with it." |
-| 1:20 | Pilot `#/pilot` | Scroll to the guardrails | "We prove it on 20 pincodes against a matched control over 90 days, with at least 50 orders per pincode per week across the pilot. It pauses if rider earnings, cost per order or delivery time slip." |
+| 1:20 | Pilot `#/pilot` | Point at the headline, then slide **Pincodes per arm** | "We test it on 10 treatment and 10 matched control pincodes over 90 days. We're candid about power: orders cluster by pincode, so this design detects about a 6-point drop, not 3. Adding pincodes moves that; adding weeks barely does. The pilot pauses if rider earnings, cost per order or delivery time slip." |
 | 1:28 | Footer | Point at the QR | "The code, the tests that assert every number, and this replay are all public." |
 
 The Hub control tower (`#/hub`) is optional if a judge asks how the hub sees all of this.
