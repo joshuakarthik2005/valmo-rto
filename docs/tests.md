@@ -66,7 +66,7 @@ Every figure in the submitted deck is asserted exactly in `src/lib/model.test.ts
 ## End-to-end smoke (Playwright, 360 / 768 / 1440 px)
 
 ```
-30 passed (26.4s)
+30 passed (25.1s)
 ```
 
 Screenshots: [docs/screens](./screens).
