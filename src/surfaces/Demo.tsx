@@ -4,8 +4,6 @@ import { useRoute, setParams } from '../lib/router'
 import { baseline, combined, replyValue, move2PerParcel, pilotPower, pilotSizing, pincodesNeeded, lakh, rupees, pct, pctTrim, count, defaultInputs } from '../lib/model'
 import { VerifyCard } from '../components/VerifyCard'
 import { PILOT_REFERENCE_SHIFT } from '../data/assumptions'
-// Already in the main bundle (it is the home page), so no extra round trip for step 1
-import Landing from './Landing'
 
 const load = {
   customer: () => import('./Customer'),
@@ -33,7 +31,7 @@ const hi = combined('ceiling')
 interface Step { title: string; caption: string; surface: LazyExoticComponent<ComponentType> | ComponentType | null; link: string; secs: number }
 
 const STEPS: Step[] = [
-  { title: 'The problem', caption: `${pctTrim(b.rtoRate)} of orders come back: ${count(b.rtos)} per lakh. Counting only the ${rupees(i.reverseCost)} return leg, that is ${lakh(b.trueDrag)} of true drag, and COD orders return ${b.codGap.toFixed(1)}× as often as prepaid.`, surface: Landing, link: '#/', secs: 12 },
+  { title: 'The problem', caption: `${pctTrim(b.rtoRate)} of orders come back: ${count(b.rtos)} per lakh. Counting only the ${rupees(i.reverseCost)} return leg, that is ${lakh(b.trueDrag)} of true drag, and COD orders return ${b.codGap.toFixed(1)}× as often as prepaid.`, surface: DemoIntro, link: '#/', secs: 12 },
   { title: 'Customer: ask first', caption: 'Before dispatch, every COD or first-time-address order climbs a ladder: WhatsApp at T-48h, the delivery window at T-24h, an IVR call at T-2h, and a hub call if there is still no reply.', surface: Customer, link: '#/customer', secs: 13 },
   { title: 'Customer: every reply has a value', caption: `Confirm counts ${rupees(replyValue('confirm').amount)}. A COD to UPI switch is worth ${rupees(replyValue('upi').amount)} expected. Cancel or “I didn't order this” avoids up to ${rupees(replyValue('cancel').amount)} per case, and those ceilings are never added to the Move 1 total.`, surface: Customer, link: '#/customer', secs: 13 },
   { title: 'Rider: no fake attempts', caption: 'Riders call through a masked number. Marking “unavailable” with no logged call is auto-rejected. A logged but unanswered call is a verified attempt: the fee is protected and the customer gets a follow-up. No GPS anywhere.', surface: Rider, link: '#/rider', secs: 14 },
@@ -43,16 +41,33 @@ const STEPS: Step[] = [
   { title: 'Resale economics', caption: `Each resold parcel saves ${rupees(move2PerParcel().net)} net: ${rupees(i.reverseCost)} return avoided, minus ${rupees(move2PerParcel().handling)} handling and a ${rupees(i.m2BuyerDiscount)} buyer discount. The seller is paid a normal settlement because it is a new sale.`, surface: Resale, link: '#/resale', secs: 11 },
   { title: 'Impact', caption: `Sequenced, the two moves net ${lakh(lo.net)} to ${lakh(hi.net)} per lakh orders, which is ${pct(lo.shareOfDrag)} to ${pct(hi.shareOfDrag)} of the drag. Illustrative RTO goes from ${pctTrim(b.rtoRate)} to ${pctTrim(lo.rtoRateAfter)}. Every slider is tagged with its source.`, surface: Impact, link: '#/impact', secs: 14 },
   { title: 'Pilot', caption: `The ${i.pilotPincodesTreated} highest-RTO pincodes against ${i.pilotPincodesControl} matched controls over ${i.pilotDays} days. Orders cluster by pincode, so at an ICC of ${i.pilotIcc} this pilot detects a drop of about ${(pp.mde * 100).toFixed(1)} points. A ${PILOT_REFERENCE_SHIFT * 100}-point drop would need about ${pp3} pincodes per arm. More pincodes help; more weeks barely do.`, surface: Pilot, link: '#/pilot', secs: 12 },
-  { title: 'Verify it yourself', caption: 'The code, the tests that check every number above, and this replay are all public. Scan the code or open the repo.', surface: null, link: '#/', secs: 9 },
+  { title: 'Verify it yourself', caption: 'The code, the tests that check every number above, and this replay are all public. Open the repo from the card below; on a large screen you can also scan its QR code to try the app on your phone.', surface: null, link: '#/', secs: 9 },
 ]
 
 const DEMO_SECONDS = STEPS.reduce((s, x) => s + x.secs, 0)
+
+/** Step 1 stage: the problem in three numbers. A demo-specific panel, so the landing page's own
+ *  "Play the demo" button and Verify card don't appear inside the demo. */
+function DemoIntro() {
+  return (
+    <div>
+      <p className="eyebrow">Meesho DICE S3 · Reducing RTO</p>
+      <h2 className="mt-1 text-3xl font-bold">{pctTrim(b.rtoRate)} of orders come back. Each one burns a return trip.</h2>
+      <div className="mt-5 grid sm:grid-cols-3 gap-4">
+        <div className="card"><p className="text-ink-soft">RTOs per 1 lakh orders</p><p className="num text-4xl font-bold text-plum mt-1">{count(b.rtos)}</p></div>
+        <div className="card"><p className="text-ink-soft">True incremental drag</p><p className="num text-4xl font-bold text-plum mt-1">{lakh(b.trueDrag)}</p><p className="text-sm text-ink-soft mt-1">Return leg only ({rupees(i.reverseCost)} each).</p></div>
+        <div className="card"><p className="text-ink-soft">COD vs prepaid RTO</p><p className="num text-4xl font-bold text-magenta-600 mt-1">{b.codGap.toFixed(1)}×</p></div>
+      </div>
+    </div>
+  )
+}
 
 export default function Demo() {
   const { params } = useRoute()
   const start = Math.min(STEPS.length - 1, Math.max(0, Number(params.get('step') ?? 1) - 1 || 0))
   const [n, setN] = useState(start)
   const [playing, setPlaying] = useState(true)
+  const [pausedByUser, setPausedByUser] = useState(false)
   const [t, setT] = useState(0)
   const step = STEPS[n]
   // Deep links (#/demo?step=N) typed or clicked while already on the demo, including the same step again
@@ -83,8 +98,11 @@ export default function Demo() {
   }, [t, step.secs, n])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.tagName === 'INPUT') return
-      if (e.key === ' ' || e.key === 'k') { e.preventDefault(); setPlaying((p) => !p) }
+      // Shortcuts only when focus is not on a control: Space on a focused button must press that button
+      // (otherwise "Pause" would toggle twice), and arrows must keep working in sliders and radio groups.
+      const t = e.target as HTMLElement | null
+      if (e.defaultPrevented || t?.closest('button, a, input, select, textarea, [role="radio"], [role="slider"], [role="region"], [contenteditable="true"]')) return
+      if (e.key === ' ' || e.key === 'k') { e.preventDefault(); setPausedByUser(false); setPlaying((p) => !p) }
       if (e.key === 'ArrowRight') setN((x) => Math.min(STEPS.length - 1, x + 1))
       if (e.key === 'ArrowLeft') setN((x) => Math.max(0, x - 1))
     }
@@ -92,6 +110,9 @@ export default function Demo() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  function pauseForInteraction() {
+    if (playing) { setPlaying(false); setPausedByUser(true) }
+  }
   const Surface = step.surface
   // Same element across the 100ms progress ticks, so the embedded surface does not re-render
   const stage = useMemo(() => (Surface ? <Surface /> : <div className="max-w-2xl mx-auto py-6"><VerifyCard /></div>), [Surface])
@@ -101,7 +122,7 @@ export default function Demo() {
         <div className="rounded-xl2 bg-plum text-cream p-4 sm:p-5 shadow-card">
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="chip bg-white/15 text-cream">Step {n + 1} of {STEPS.length}</span>
-            <span className="font-semibold">{step.title}</span>
+            <h1 className="font-sans text-base font-semibold text-cream">Guided demo: {step.title}</h1>
             <a href={step.link} className="ml-auto underline text-cream/90 hover:text-cream">Open this surface on its own</a>
           </div>
           <AnimatePresence mode="wait">
@@ -114,14 +135,18 @@ export default function Demo() {
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button className="btn min-h-[40px] bg-white/15 hover:bg-white/25" onClick={() => setN(Math.max(0, n - 1))} disabled={n === 0}>Back</button>
-            <button className="btn min-h-[40px] bg-cream text-plum" onClick={() => setPlaying((p) => !p)} aria-pressed={!playing}>{playing ? 'Pause' : 'Play'}</button>
+            <button className="btn min-h-[40px] bg-cream text-plum" onClick={() => { setPausedByUser(false); setPlaying((p) => !p) }} aria-pressed={!playing}>{playing ? 'Pause' : 'Play'}</button>
             <button className="btn min-h-[40px] bg-white/15 hover:bg-white/25" onClick={() => setN(Math.min(STEPS.length - 1, n + 1))} disabled={n === STEPS.length - 1}>Skip</button>
-            <button className="btn min-h-[40px] bg-white/15 hover:bg-white/25" onClick={() => { setN(0); setT(0); setPlaying(true) }}>Restart</button>
-            <span className="ml-auto self-center text-sm text-cream/90">About {Math.round(DEMO_SECONDS / 60)} min · Space pauses, arrow keys step</span>
+            <button className="btn min-h-[40px] bg-white/15 hover:bg-white/25" onClick={() => { setN(0); setT(0); setPausedByUser(false); setPlaying(true) }}>Restart</button>
+            <span className="ml-auto self-center text-sm text-cream/90" aria-live="polite" data-testid="demo-status">
+              {pausedByUser ? 'Paused while you explore. Press Play to continue.' : `About ${Math.round(DEMO_SECONDS / 60)} min · Space pauses, arrow keys step`}
+            </span>
           </div>
         </div>
       </div>
-      <div className="mt-4 rounded-xl2 ring-2 ring-plum/10 p-3 sm:p-5 bg-cream">
+      {/* Interacting with the embedded surface pauses the tour, so the step never changes under the user's hand */}
+      <div className="mt-4 rounded-xl2 ring-2 ring-plum/10 p-3 sm:p-5 bg-cream" data-testid="demo-stage"
+        onPointerDownCapture={pauseForInteraction} onKeyDownCapture={pauseForInteraction}>
         <Suspense fallback={<p className="min-h-[100svh]" role="status">Loading…</p>}>
           {stage}
         </Suspense>
