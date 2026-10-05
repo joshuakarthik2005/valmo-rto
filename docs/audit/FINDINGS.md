@@ -22,8 +22,8 @@ Each finding is mapped to the v3 item that fixes it, and the Status column shows
 |---|---|---|---|---|
 | F8 | All pages, 360 px | The surface switcher cuts off "Impact", "Pilot" and "▶ Demo" with nothing to show it scrolls. The two highest-value pages are invisible on a phone. | **A7** | ✅ fixed in #8 |
 | F9 | `#/hub`, 360 px | The orders table scrolls sideways. Risk, nudge status and the SLA timer, which are the point of the page, start off-screen. | **A7**: card layout below `sm` | ✅ fixed in #8 |
-| F10 | `#/demo`, step 1 | The demo embeds the landing page, so a second "Play the demo" button and a second Verify card appear inside it. | **A7**: demo-specific intro panel | planned (A7) |
-| F11 | `#/demo` | The timer keeps advancing while a judge interacts with the embedded surface, so the step changes under their cursor. | **A7**: pause on interaction | planned (A7) |
+| F10 | `#/demo`, step 1 | The demo embeds the landing page, so a second "Play the demo" button and a second Verify card appear inside it. | **A7**: demo-specific intro panel | ✅ fixed in the A7 PR |
+| F11 | `#/demo` | The timer keeps advancing while a judge interacts with the embedded surface, so the step changes under their cursor. | **A7**: pause on interaction | ✅ fixed in the A7 PR |
 | F12 | `#/resale` | The buyer's "Buy now" button does nothing. The seller's opt-in checkbox has no effect. | **A4** covers "resale buyer cancels" and the buyer path. **B2** covers the seller view | planned (A4, B2) |
 | F13 | `#/hub` | "Override" on a flagged mark only changes a line of text, and the decision isn't reflected anywhere else. | **A4** | planned (A4) |
 | F14 | Header | The "Meesho × Valmo" wordmark could be read as official co-branding. The disclaimer is only in the footer. | Your call. Option: add "Team prototype" next to the wordmark | ✅ fixed in #9 |
@@ -32,7 +32,7 @@ Each finding is mapped to the v3 item that fixes it, and the Status column shows
 
 | # | Question | Fix in | Status |
 |---|---|---|---|
-| F15 | "How does this plug into Valmo's systems? What data do you need?" | **A3** | planned (A3) |
+| F15 | "How does this plug into Valmo's systems? What data do you need?" | **A3** | ✅ fixed in #15 |
 | F16 | "How confident are these ranges?" The only answer today is conservative versus ceiling. | **A2** | planned (A2) |
 | F17 | "What happens when the IVR fails, or the rider is offline?" | **A4** | planned (A4) |
 | F18 | "Is the risk score real?" | **A5** | planned (A5) |

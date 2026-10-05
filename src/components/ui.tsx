@@ -64,3 +64,15 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
     </div>
   )
 }
+
+/**
+ * A sideways-scrolling container that keyboard users can reach and scroll (axe: scrollable-region-focusable).
+ * Tab focuses it, then the arrow keys scroll it.
+ */
+export function ScrollRegion({ label, className = '', children, testId }: { label: string; className?: string; children: ReactNode; testId?: string }) {
+  return (
+    <div role="region" aria-label={label} tabIndex={0} data-testid={testId} className={`overflow-x-auto rounded-lg ${className}`}>
+      {children}
+    </div>
+  )
+}
