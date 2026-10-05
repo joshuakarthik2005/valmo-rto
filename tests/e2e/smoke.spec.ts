@@ -250,3 +250,33 @@ test('verify card: one phone QR on large screens, wrapping repo link, four butto
   await page.reload()
   await shot(page, '10-verify-card', info.project.name)
 })
+
+test('layout: every surface link visible and no sideways page scroll on any route', async ({ page }) => {
+  for (const r of ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo']) {
+    await page.goto(`/#${r}`)
+    await expect(page.locator('h1').first()).toBeVisible()
+    const m = await page.evaluate(() => {
+      const links = [...document.querySelectorAll('nav[aria-label="Surfaces"] a')]
+      const hidden = links.filter((a) => { const b = a.getBoundingClientRect(); return b.left < 0 || b.right > innerWidth + 0.5 }).map((a) => a.textContent)
+      return { count: links.length, hidden, overflow: document.documentElement.scrollWidth - innerWidth }
+    })
+    expect(m.count, r).toBe(7)
+    expect(m.hidden, `nav links outside the viewport on ${r}`).toEqual([])
+    expect(m.overflow, `horizontal page overflow on ${r}`).toBeLessThanOrEqual(0)
+  }
+})
+
+test('hub: orders show risk, nudge and timer without sideways scrolling', async ({ page }) => {
+  await page.goto('/#/hub')
+  const narrow = (page.viewportSize()?.width ?? 0) < 768
+  const view = page.getByTestId(narrow ? 'orders-cards' : 'orders-table')
+  await expect(view).toBeVisible()
+  await expect(page.getByTestId(narrow ? 'orders-table' : 'orders-cards')).toBeHidden()
+  for (const t of ['MSH-48702', 'High · 25.9%', 'Hub to call', 'Not dispatching']) await expect(view).toContainText(t)
+  const fits = await view.evaluate((el) => {
+    const box = el.getBoundingClientRect()
+    const scroller = el.matches('[data-testid="orders-table"]') ? el : null
+    return box.right <= innerWidth + 0.5 && (!scroller || scroller.scrollWidth <= scroller.clientWidth)
+  })
+  expect(fits).toBe(true)
+})
