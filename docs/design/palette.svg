@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" font-family="Inter, Arial, sans-serif">
+<rect width="1200" height="360" fill="#FBF3E7"/>
+<text x="40" y="52" font-size="28" font-weight="700" fill="#5A0F47">Route Cause palette (matches the deck)</text>
+<rect x="40" y="80" width="170" height="170" rx="20" fill="#5A0F47" stroke="#2A1424" stroke-opacity=".12"/>
+<text x="56" y="230" font-size="20" font-weight="700" fill="#FBF3E7">#5A0F47</text>
+<text x="40" y="282" font-size="18" font-weight="700" fill="#2A1424">Deep plum</text>
+<text x="40" y="306" font-size="13" fill="#5C4756">Brand, headings, totals</text>
+<rect x="230" y="80" width="170" height="170" rx="20" fill="#C2186B" stroke="#2A1424" stroke-opacity=".12"/>
+<text x="246" y="230" font-size="20" font-weight="700" fill="#FFFFFF">#C2186B</text>
+<text x="230" y="282" font-size="18" font-weight="700" fill="#2A1424">Magenta</text>
+<text x="230" y="306" font-size="13" fill="#5C4756">Primary actions, accents</text>
+<rect x="420" y="80" width="170" height="170" rx="20" fill="#FBF3E7" stroke="#2A1424" stroke-opacity=".12"/>
+<text x="436" y="230" font-size="20" font-weight="700" fill="#2A1424">#FBF3E7</text>
+<text x="420" y="282" font-size="18" font-weight="700" fill="#2A1424">Cream</text>
+<text x="420" y="306" font-size="13" fill="#5C4756">Page surface</text>
+<rect x="610" y="80" width="170" height="170" rx="20" fill="#2F8F5B" stroke="#2A1424" stroke-opacity=".12"/>
+<text x="626" y="230" font-size="20" font-weight="700" fill="#FFFFFF">#2F8F5B</text>
+<text x="610" y="282" font-size="18" font-weight="700" fill="#2A1424">Green</text>
+<text x="610" y="306" font-size="13" fill="#5C4756">Positive fills (text uses #1F6</text>
+<text x="610" y="324" font-size="13" fill="#5C4756">B42)</text>
+<rect x="800" y="80" width="170" height="170" rx="20" fill="#FE8E94" stroke="#2A1424" stroke-opacity=".12"/>
+<text x="816" y="230" font-size="20" font-weight="700" fill="#2A1424">#FE8E94</text>
+<text x="800" y="282" font-size="18" font-weight="700" fill="#2A1424">Coral</text>
+<text x="800" y="306" font-size="13" fill="#5C4756">Highlights, simulated-data bad</text>
+<text x="800" y="324" font-size="13" fill="#5C4756">ge</text>
+<rect x="990" y="80" width="170" height="170" rx="20" fill="#2A1424" stroke="#2A1424" stroke-opacity=".12"/>
+<text x="1006" y="230" font-size="20" font-weight="700" fill="#FFFFFF">#2A1424</text>
+<text x="990" y="282" font-size="18" font-weight="700" fill="#2A1424">Ink</text>
+<text x="990" y="306" font-size="13" fill="#5C4756">Body text</text>
+</svg>
