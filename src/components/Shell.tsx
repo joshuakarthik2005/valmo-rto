@@ -5,7 +5,7 @@ import { VerifyCard } from './VerifyCard'
 
 export function Wordmark() {
   return (
-    <a href="#/" className="flex items-baseline gap-1.5 font-display text-xl font-bold text-plum whitespace-nowrap" aria-label="Route Cause home">
+    <a href="#/" className="flex items-baseline gap-1.5 font-display text-xl font-bold text-plum whitespace-nowrap">
       <span>Meesho</span>
       <span aria-hidden className="text-coral">×</span>
       <span className="sr-only">by</span>

@@ -12,7 +12,7 @@ export default {
         ink: { DEFAULT: '#2A1424', soft: '#5C4756' },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Inter', '"Inter Fallback"', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
         display: ['"Fraunces"', 'Georgia', 'serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },

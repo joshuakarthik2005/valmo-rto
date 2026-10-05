@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, type ComponentType, type LazyExoticComponent } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState, type ComponentType, type LazyExoticComponent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRoute, setParams } from '../lib/router'
 import { baseline, combined, replyValue, move2PerParcel, lakh, rupees, pct, pctTrim, count, defaultInputs } from '../lib/model'
@@ -68,6 +68,8 @@ export default function Demo() {
   }, [])
 
   const Surface = step.surface
+  // Same element across the 100ms progress ticks, so the embedded surface does not re-render
+  const stage = useMemo(() => (Surface ? <Surface /> : <div className="max-w-2xl mx-auto py-6"><VerifyCard /></div>), [Surface])
   return (
     <div>
       <div className="lg:sticky lg:top-[4.25rem] z-30 -mx-4 px-4 pb-3 bg-cream/95 backdrop-blur">
@@ -78,7 +80,7 @@ export default function Demo() {
             <a href={step.link} className="ml-auto underline text-cream/90 hover:text-cream">Open this surface on its own</a>
           </div>
           <AnimatePresence mode="wait">
-            <motion.p key={n} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 text-lg sm:text-xl leading-snug" aria-live="polite" data-testid="caption">
+            <motion.p key={n} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 min-h-[9rem] sm:min-h-[5.5rem] lg:min-h-[3.75rem] text-lg sm:text-xl leading-snug" aria-live="polite" data-testid="caption">
               {step.caption}
             </motion.p>
           </AnimatePresence>
@@ -95,8 +97,8 @@ export default function Demo() {
         </div>
       </div>
       <div className="mt-4 rounded-xl2 ring-2 ring-plum/10 p-3 sm:p-5 bg-cream">
-        <Suspense fallback={<p role="status">Loading…</p>}>
-          {Surface ? <Surface /> : <div className="max-w-2xl mx-auto py-6"><VerifyCard /></div>}
+        <Suspense fallback={<p className="min-h-[100svh]" role="status">Loading…</p>}>
+          {stage}
         </Suspense>
       </div>
     </div>

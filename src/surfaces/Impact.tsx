@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { PageHeader, Segmented, SourcePill, Callout } from '../components/ui'
 import { A, ROOT_CAUSE_SAMPLE, ROOT_CAUSE_SOURCE, OPEN_ITEMS, type AssumptionId } from '../data/assumptions'
 import {
@@ -115,20 +114,7 @@ export default function Impact() {
       <div className="grid lg:grid-cols-[1.4fr_1fr] gap-6 mb-6">
         <section className="card" aria-labelledby="wf-h">
           <h2 id="wf-h" className="text-xl font-bold">Waterfall: from true drag to what is left</h2>
-          <div className="mt-4 h-72" role="img" aria-label={`Waterfall: ${wf.map((s) => `${s.label} ${lakh(s.value)}`).join(', ')}`}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={wfData} margin={{ top: 24, right: 8, left: 8, bottom: 8 }} barCategoryGap="22%">
-                <XAxis dataKey="label" tick={{ fontSize: 13, fill: '#5C4756' }} interval={0} tickLine={false} axisLine={{ stroke: '#e5d6cf' }} />
-                <YAxis hide domain={[0, b.trueDrag * 1.1]} />
-                <Tooltip cursor={{ fill: 'rgba(90,15,71,.06)' }} formatter={(_v, _n, p) => [lakh((p.payload as { value: number }).value, 2), (p.payload as { label: string }).label]} labelFormatter={() => ''} />
-                <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />
-                <Bar dataKey="bar" stackId="w" radius={[4, 4, 4, 4]} isAnimationActive={false}>
-                  {wfData.map((d) => <Cell key={d.key} fill={d.color} />)}
-                  <LabelList dataKey="value" position="top" formatter={(v: unknown) => lakh(Number(v), 2)} style={{ fill: '#2A1424', fontSize: 13, fontWeight: 600 }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <Waterfall data={wfData} max={b.trueDrag * 1.12} />
           <ul className="mt-2 flex flex-wrap gap-4 text-sm text-ink">
             <li className="flex items-center gap-2"><span aria-hidden className="h-3 w-3 rounded-sm" style={{ background: COLORS.total }} />Totals</li>
             <li className="flex items-center gap-2"><span aria-hidden className="h-3 w-3 rounded-sm" style={{ background: COLORS.down }} />Saving</li>
@@ -173,18 +159,17 @@ export default function Impact() {
           <h2 id="rc-h" className="text-xl font-bold">Why parcels come back</h2>
           <p className="text-ink-soft">{count(b.rtos)} RTOs, {lakh(b.trueDrag)} true drag, split by an n={ROOT_CAUSE_SAMPLE} shopper survey. Illustrative.</p>
           <div className="mt-2"><SourcePill tag={ROOT_CAUSE_SOURCE} /></div>
-          <div className="mt-3 h-64" role="img" aria-label={rc.map((r) => `${r.label} ${lakh(r.cost, 2)}`).join(', ')}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={rc} layout="vertical" margin={{ top: 0, right: 64, left: 0, bottom: 0 }} barCategoryGap="20%">
-                <XAxis type="number" hide domain={[0, 'dataMax']} />
-                <YAxis type="category" dataKey="label" width={150} tick={{ fontSize: 14, fill: '#2A1424' }} tickLine={false} axisLine={false} />
-                <Tooltip cursor={{ fill: 'rgba(90,15,71,.06)' }} formatter={(v: unknown, _n, p) => [`${lakh(Number(v), 2)} · ${count((p.payload as { orders: number }).orders)} orders`, 'Cost']} />
-                <Bar dataKey="cost" fill="#5A0F47" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                  <LabelList dataKey="cost" position="right" formatter={(v: unknown) => lakh(Number(v), 2)} style={{ fill: '#2A1424', fontSize: 13, fontWeight: 600 }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <ul className="mt-4 space-y-2.5" aria-label="Cost by root cause">
+            {rc.map((r) => (
+              <li key={r.id} className="grid grid-cols-[8.5rem_1fr] sm:grid-cols-[10rem_1fr] items-center gap-3" title={`${r.label}: ${count(r.orders)} orders, ${lakh(r.cost, 2)}`}>
+                <span className="text-ink text-[15px] leading-tight">{r.label}</span>
+                <span className="flex items-center gap-2">
+                  <span className="h-6 rounded-r bg-plum" style={{ width: `${(r.share / 0.2) * 75}%` }} aria-hidden />
+                  <span className="num text-sm font-semibold text-ink whitespace-nowrap">{lakh(r.cost, 2)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
           <details className="mt-2">
             <summary className="cursor-pointer font-semibold text-plum">Show as table</summary>
             <table className="mt-2 w-full text-left">
@@ -252,6 +237,26 @@ export default function Impact() {
 
       <AssumptionsDrawer open={drawer} onClose={() => setDrawer(false)} inputs={inputs} />
     </div>
+  )
+}
+
+function Waterfall({ data, max }: { data: { key: string; label: string; value: number; kind: 'total' | 'delta'; base: number; bar: number; color: string }[]; max: number }) {
+  return (
+    <figure className="mt-4" aria-label={`Waterfall: ${data.map((d) => `${d.label} ${lakh(d.value, 2)}`).join(', ')}`}>
+      <div className="relative h-64 flex items-stretch gap-2 sm:gap-4 border-b border-[#e5d6cf]">
+        {data.map((d) => (
+          <div key={d.key} className="relative flex-1 group" tabIndex={0} aria-label={`${d.label}: ${lakh(d.value, 2)}`}>
+            <div className="absolute inset-x-0 rounded transition-all duration-300" style={{ bottom: `${(d.base / max) * 100}%`, height: `${Math.max(0.6, (d.bar / max) * 100)}%`, background: d.color }} />
+            <span className="num absolute inset-x-0 text-center text-[13px] font-semibold text-ink" style={{ bottom: `calc(${((d.base + d.bar) / max) * 100}% + 4px)` }}>
+              {d.value < 0 ? '' : d.kind === 'delta' ? '+' : ''}{lakh(d.value, d.kind === 'delta' ? 2 : 1)}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex gap-2 sm:gap-4">
+        {data.map((d) => <span key={d.key} className="flex-1 text-center text-[13px] leading-tight text-ink-soft">{d.label}</span>)}
+      </div>
+    </figure>
   )
 }
 

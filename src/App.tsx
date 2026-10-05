@@ -1,8 +1,10 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { MotionConfig } from 'framer-motion'
 import { useRoute } from './lib/router'
 import { Shell } from './components/Shell'
 import Landing from './surfaces/Landing'
+
+// framer-motion loads with the first interactive surface, not with the landing page
+const MotionBoundary = lazy(() => import('./components/MotionBoundary'))
 
 const PAGES: Record<string, ReturnType<typeof lazy>> = {
   '/customer': lazy(() => import('./surfaces/Customer')),
@@ -29,13 +31,13 @@ export function App() {
   }, [path])
   if (path === '/og') return <Suspense fallback={null}><OgCard /></Suspense>
   return (
-    <MotionConfig reducedMotion="user">
+    <>
       <Shell path={path} hideFooterCard={path === '/'}>
         {path === '/' ? (
           <Landing />
         ) : Page ? (
-          <Suspense fallback={<p className="text-ink-soft" role="status">Loading…</p>}>
-            <Page />
+          <Suspense fallback={<p className="min-h-[100svh] text-ink-soft" role="status">Loading…</p>}>
+            <MotionBoundary><Page /></MotionBoundary>
           </Suspense>
         ) : (
           <div className="card max-w-lg">
@@ -44,6 +46,6 @@ export function App() {
           </div>
         )}
       </Shell>
-    </MotionConfig>
+    </>
   )
 }
