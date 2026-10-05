@@ -21,12 +21,14 @@ export function Shell({ path, children, hideFooterCard = false }: { path: string
       <a href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus() }} className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 btn-plum">
         Skip to content
       </a>
-      <header className="sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-plum/10">
+      {/* Sticky from 640 px up; on phones the wrapped two-row nav scrolls away instead of covering the page */}
+      <header className="sm:sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-plum/10">
         <div className="mx-auto max-w-6xl px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
           <Wordmark />
           <SimBadge className="ml-auto" />
-          <nav aria-label="Surfaces" className="w-full lg:w-auto lg:order-none -mx-4 px-4 lg:mx-0 lg:px-0 overflow-x-auto">
-            <ul className="flex gap-1.5 py-0.5">
+          <nav aria-label="Surfaces" className="w-full lg:w-auto lg:order-none sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0 sm:overflow-x-auto">
+            {/* Phones: every surface wraps into view (no hidden, sideways-scrolling links) */}
+            <ul className="flex flex-wrap sm:flex-nowrap gap-1.5 py-0.5">
               {SURFACES.map((s) => {
                 const active = path.startsWith(s.path)
                 return (
