@@ -251,8 +251,8 @@ export function pilotSizing(i: Inputs = defaultInputs()) {
   const weeks = Math.round(i.pilotDays / 7)
   const phases = i.pilotDays / i.pilotPhaseDays
   const ordersPerPin = i.pilotOrdersPerPinWeek * weeks
-  const ordersPerArm = ordersPerPin * i.pilotPincodesPerArm
-  return { weeks, phases, ordersPerPin, ordersPerArm, totalPincodes: i.pilotPincodesPerArm * 2 }
+  const ordersPerArm = ordersPerPin * i.pilotPincodesTreated
+  return { weeks, phases, ordersPerPin, ordersPerArm, treated: i.pilotPincodesTreated, control: i.pilotPincodesControl, totalPincodes: i.pilotPincodesTreated + i.pilotPincodesControl }
 }
 
 // ---------- Pilot power (two proportions, cluster-randomised by pincode) ----------
@@ -327,11 +327,20 @@ export function weeksNeeded(p1: number, p2: number, d: Omit<PowerDesign, 'weeks'
   return Infinity
 }
 
-/** Everything the pilot calculator shows, from one set of inputs. */
+/**
+ * Pincodes per arm needed to detect p1 -> p2 at a given weekly volume, length and ICC:
+ * ceil(n * DEFF / m), with m = orders per pincode over the pilot.
+ */
+export function pincodesNeeded(p1: number, p2: number, d: Omit<PowerDesign, 'pincodesPerArm'>, alpha = 0.05, power = 0.8) {
+  const m = d.ordersPerPinWeek * d.weeks
+  return Math.ceil((twoPropN(p1, p2, alpha, power) * designEffect(m, d.icc)) / m)
+}
+
+/** Everything the pilot calculator shows, from one set of inputs. Assumes equal arms (control = treated). */
 export function pilotPower(i: Inputs = defaultInputs(), target = combined('conservative', 'sequenced', i).rtoRateAfter) {
   const p1 = baseline(i).rtoRate
   const { weeks } = pilotSizing(i)
-  const design: PowerDesign = { pincodesPerArm: i.pilotPincodesPerArm, ordersPerPinWeek: i.pilotOrdersPerPinWeek, weeks, icc: i.pilotIcc }
+  const design: PowerDesign = { pincodesPerArm: i.pilotPincodesTreated, ordersPerPinWeek: i.pilotOrdersPerPinWeek, weeks, icc: i.pilotIcc }
   const nUnclustered = Math.ceil(twoPropN(p1, target, i.pilotAlpha, i.pilotPower))
   const eff = effectiveN(design)
   const nClustered = Math.ceil(nUnclustered * eff.deff)
@@ -342,7 +351,7 @@ export function pilotPower(i: Inputs = defaultInputs(), target = combined('conse
     weeksNeeded: weeksNeeded(p1, target, design, i.pilotAlpha, i.pilotPower),
     detectable: eff.eff >= nUnclustered,
     /** Upper limit on effective n per arm as weeks grow without bound */
-    effCeiling: i.pilotIcc > 0 ? i.pilotPincodesPerArm / i.pilotIcc : Infinity,
+    effCeiling: i.pilotIcc > 0 ? i.pilotPincodesTreated / i.pilotIcc : Infinity,
   }
 }
 
