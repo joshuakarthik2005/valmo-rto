@@ -122,7 +122,7 @@ export default function Customer() {
                 const state = n < step ? 'done' : n === step ? (status === 'waiting' ? 'now' : 'answered') : 'next'
                 return (
                   <li key={l.key} className={`flex gap-3 rounded-xl p-3 ${state === 'now' ? 'bg-magenta-100' : state === 'answered' ? 'bg-leaf-100' : ''}`}>
-                    <span className={`mt-0.5 shrink-0 chip min-w-[4.5rem] justify-center ${state === 'next' ? 'bg-cream-200 text-ink-soft' : 'bg-plum text-cream'}`}>{l.when}</span>
+                    <span className={`mt-0.5 shrink-0 chip min-w-[4.5rem] justify-center whitespace-nowrap self-start ${state === 'next' ? 'bg-cream-200 text-ink-soft' : 'bg-plum text-cream'}`}>{l.when}</span>
                     <div>
                       <p className="font-semibold text-ink">
                         {l.title}
