@@ -13,7 +13,7 @@ Each finding is mapped to the v3 item that fixes it, and the Status column shows
 | F3 | `#/pilot` | The "simulated readout" shows invented values (46% response, 12% rejection, 0.8% opt-out, RTO 13.9% against 16.7%) laid out like results. They are labelled simulated, but they read as outcomes. | **A1**: replace them with the metric definitions and the minimum detectable effect, and show synthetic values only as clearly marked examples | ✅ fixed in #6 (A1) |
 | F4 | `#/hub`, `#/rider` | The risk shows as "High · 25.9%", which looks precise but comes from an ad-hoc formula with no explanation. | **A5** | planned (A5) |
 | F5 | `#/impact` | The root-cause chart says "n=20 shopper survey", but its source pill says "Primary research (n=25, small)". The two sample sizes look inconsistent; the 20 shoppers are a subset of the 25 interviews. | Small fix in **A5** | planned (A5) |
-| F6 | `/legacy/`, linked from the README | The preserved v1 page still uses the old ₹170 basis for the UPI switch (₹26 expected). That contradicts the corrected ₹18 everywhere else, and a judge who clicks through will see both. | **A6**: add a "superseded" banner to legacy and correct the README link text | ✅ fixed in the polish PR |
+| F6 | `/legacy/`, linked from the README | The preserved v1 page still uses the old ₹170 basis for the UPI switch (₹26 expected). That contradicts the corrected ₹18 everywhere else, and a judge who clicks through will see both. | **A6**: add a "superseded" banner to legacy and correct the README link text | ✅ fixed in #9 |
 | F7 | `#/rider` | The masked number "+91 80 4213 7130 (masked)" looks like a real dialable number. | Small fix in **A4**: use an obviously fake proxy format | planned (A4) |
 
 ## Confusing, unfinished, or dead ends
@@ -26,7 +26,7 @@ Each finding is mapped to the v3 item that fixes it, and the Status column shows
 | F11 | `#/demo` | The timer keeps advancing while a judge interacts with the embedded surface, so the step changes under their cursor. | **A7**: pause on interaction | planned (A7) |
 | F12 | `#/resale` | The buyer's "Buy now" button does nothing. The seller's opt-in checkbox has no effect. | **A4** covers "resale buyer cancels" and the buyer path. **B2** covers the seller view | planned (A4, B2) |
 | F13 | `#/hub` | "Override" on a flagged mark only changes a line of text, and the decision isn't reflected anywhere else. | **A4** | planned (A4) |
-| F14 | Header | The "Meesho × Valmo" wordmark could be read as official co-branding. The disclaimer is only in the footer. | Your call. Option: add "Team prototype" next to the wordmark | ✅ fixed in the polish PR |
+| F14 | Header | The "Meesho × Valmo" wordmark could be read as official co-branding. The disclaimer is only in the footer. | Your call. Option: add "Team prototype" next to the wordmark | ✅ fixed in #9 |
 
 ## Missing pieces an evaluator will ask about
 
