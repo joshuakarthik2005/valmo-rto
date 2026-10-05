@@ -6,7 +6,7 @@ export const SURFACES = [
   { id: 'hub', path: '/hub', label: 'Hub', who: 'Hub supervisor', blurb: 'One control tower for risk, nudges, flagged attempts and the resale shelf.' },
   { id: 'resale', path: '/resale', label: 'Resale', who: 'Hub, buyer, seller', blurb: 'A refused parcel becomes a next-day local sale instead of a long trip back.' },
   { id: 'impact', path: '/impact', label: 'Impact', who: 'Leadership', blurb: 'Every rupee traced to an assumption you can move.' },
-  { id: 'pilot', path: '/pilot', label: 'Pilot', who: 'Ops + analytics', blurb: `${A.pilotPincodes.value} pincodes against a matched control, over ${A.pilotDays.value} days.` },
+  { id: 'pilot', path: '/pilot', label: 'Pilot', who: 'Ops + analytics', blurb: `${A.pilotPincodesPerArm.value} + ${A.pilotPincodesPerArm.value} matched pincodes over ${A.pilotDays.value} days, with an honest power calculator.` },
 ] as const
 
 export type SurfaceId = (typeof SURFACES)[number]['id']

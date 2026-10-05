@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type ComponentType, type LazyExoticComponent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRoute, setParams } from '../lib/router'
-import { baseline, combined, replyValue, move2PerParcel, lakh, rupees, pct, pctTrim, count, defaultInputs } from '../lib/model'
+import { baseline, combined, replyValue, move2PerParcel, pilotPower, lakh, rupees, pct, pctTrim, count, defaultInputs } from '../lib/model'
 import { VerifyCard } from '../components/VerifyCard'
 // Already in the main bundle (it is the home page), so no extra round trip for step 1
 import Landing from './Landing'
@@ -39,7 +39,7 @@ const STEPS: Step[] = [
   { title: 'Resale: refused, then resold nearby', caption: `A refused parcel passes six checks, including the ${rupees(i.m2PriceCap)} cap. It is matched to a nearby buyer (same device blocked), invoiced automatically and delivered the next day. No match in ${i.m2WindowDays} business days means standard RTO.`, surface: Resale, link: '#/resale', secs: 14 },
   { title: 'Resale economics', caption: `Each resold parcel saves ${rupees(move2PerParcel().net)} net: ${rupees(i.reverseCost)} return avoided, minus ${rupees(move2PerParcel().handling)} handling and a ${rupees(i.m2BuyerDiscount)} buyer discount. The seller is paid a normal settlement because it is a new sale.`, surface: Resale, link: '#/resale', secs: 11 },
   { title: 'Impact', caption: `Sequenced, the two moves net ${lakh(lo.net)} to ${lakh(hi.net)} per lakh orders, which is ${pct(lo.shareOfDrag)} to ${pct(hi.shareOfDrag)} of the drag. Illustrative RTO goes from ${pctTrim(b.rtoRate)} to ${pctTrim(lo.rtoRateAfter)}. Every slider is tagged with its source.`, surface: Impact, link: '#/impact', secs: 14 },
-  { title: 'Pilot', caption: `${i.pilotPincodes} pincodes against a matched control over ${i.pilotDays} days, with at least ${i.pilotMinOrdersPerPinWeek} orders per pincode per week across the pilot. Guardrails cover rider earnings, cost per order and delivery time.`, surface: Pilot, link: '#/pilot', secs: 11 },
+  { title: 'Pilot', caption: `${i.pilotPincodesPerArm} treatment and ${i.pilotPincodesPerArm} matched control pincodes over ${i.pilotDays} days. The power calculator is candid: with realistic clustering this pilot detects a drop of about ${(pilotPower().mde * 100).toFixed(1)} points, not 3. More pincodes help; more weeks barely do.`, surface: Pilot, link: '#/pilot', secs: 11 },
   { title: 'Verify it yourself', caption: 'The code, the tests that check every number above, and this replay are all public. Scan the code or open the repo.', surface: null, link: '#/', secs: 9 },
 ]
 
