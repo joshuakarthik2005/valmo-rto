@@ -7,13 +7,13 @@ const b = baseline()
 const lo = combined('conservative')
 const hi = combined('ceiling')
 
-const fade = { initial: { opacity: 0, y: 12 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.4 } }
+const fade = (n: number) => ({ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.4, delay: 0.1 * n } })
 
 export default function Landing() {
   const three = SURFACES.filter((s) => ['customer', 'rider', 'resale'].includes(s.id))
   return (
     <div className="space-y-12 sm:space-y-16">
-      <section className="grid lg:grid-cols-[1.3fr_1fr] gap-8 items-center">
+      <section className="grid lg:grid-cols-[1.1fr_1fr] gap-8 items-center">
         <div>
           <p className="eyebrow">Meesho DICE S3 · Reducing RTO</p>
           <h1 className="mt-2 text-4xl sm:text-5xl font-bold leading-tight">
@@ -30,7 +30,7 @@ export default function Landing() {
         <VerifyCard />
       </section>
 
-      <motion.section {...fade} aria-labelledby="p-h">
+      <motion.section {...fade(1)} aria-labelledby="p-h">
         <p className="eyebrow">1 · The problem</p>
         <h2 id="p-h" className="mt-1 text-3xl font-bold">{pctTrim(b.rtoRate)} of orders come back. Each one burns a return trip.</h2>
         <div className="mt-5 grid sm:grid-cols-3 gap-4">
@@ -51,7 +51,7 @@ export default function Landing() {
         </div>
       </motion.section>
 
-      <motion.section {...fade} aria-labelledby="s-h">
+      <motion.section {...fade(2)} aria-labelledby="s-h">
         <p className="eyebrow">2 · Three surfaces, one loop</p>
         <h2 id="s-h" className="mt-1 text-3xl font-bold">Ask early. Verify the attempt. Resell nearby.</h2>
         <ol className="mt-5 grid md:grid-cols-3 gap-4">
@@ -72,7 +72,7 @@ export default function Landing() {
         </p>
       </motion.section>
 
-      <motion.section {...fade} aria-labelledby="i-h" className="card bg-plum-100/60">
+      <motion.section {...fade(3)} aria-labelledby="i-h" className="card bg-plum-100/60">
         <p className="eyebrow">3 · Impact (sequenced, per 1 lakh orders)</p>
         <h2 id="i-h" className="mt-1 text-3xl font-bold">
           {lakh(lo.net)} to {lakh(hi.net)} net saved, {pct(lo.shareOfDrag)} to {pct(hi.shareOfDrag)} of the drag.
