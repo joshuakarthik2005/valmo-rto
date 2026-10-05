@@ -300,3 +300,31 @@ export function orderRisk(o: { band: 'near' | 'moderate' | 'far'; cod: boolean; 
 export function resalePrice(price: number, i: Inputs = defaultInputs()) {
   return price - i.m2BuyerDiscount
 }
+
+// ---------- Pilot simulation (clearly labelled simulated on screen) ----------
+
+/** Deterministic pseudo-noise so the simulated chart is identical on every load. */
+function wobble(n: number, amp: number) {
+  return Math.sin(n * 12.9898) * amp
+}
+
+/** Weekly RTO% for treatment vs control: treatment ramps to the conservative Move 1 rate by week 4. */
+export function pilotSeries(i: Inputs = defaultInputs()) {
+  const { weeks } = pilotSizing(i)
+  const before = baseline(i).rtoRate
+  const after = combined('conservative', 'sequenced', i).rtoRateAfter
+  return Array.from({ length: weeks }, (_, k) => {
+    const w = k + 1
+    const ramp = Math.min(1, w / 4)
+    return {
+      week: w,
+      control: before + wobble(w, 0.004),
+      treatment: before - (before - after) * ramp + wobble(w + 7, 0.004),
+    }
+  })
+}
+
+/** Messaging cost per order, used as the cost-per-order guardrail. */
+export function messagingCostPerOrder(i: Inputs = defaultInputs()) {
+  return i.m1MessagingCost / i.ordersBase
+}

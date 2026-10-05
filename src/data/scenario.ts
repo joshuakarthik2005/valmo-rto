@@ -72,3 +72,6 @@ export const RESALE_ITEM = {
 
 /** Fixed demo "today" so countdowns and screenshots are deterministic. */
 export const DEMO_TODAY = new Date(2026, 9, 5, 14, 5)
+
+/** Simulated pilot readout values (not measured). */
+export const PILOT_SIM = { responseRate: 0.46, fakeRejectRate: 0.12, optOutRate: 0.008 }

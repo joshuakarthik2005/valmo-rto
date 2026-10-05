@@ -79,6 +79,7 @@ export const A = {
   pilotControlPincodes: a({ id: 'pilotControlPincodes', label: 'Matched control pincodes', value: 20, unit: 'count', source: 'assumption' }),
   pilotMinOrdersPerPinWeek: a({ id: 'pilotMinOrdersPerPinWeek', label: 'Minimum orders per pincode per week, across the 90-day pilot', value: 50, unit: 'orders', source: 'assumption' }),
   pilotDays: a({ id: 'pilotDays', label: 'Pilot length', value: 90, unit: 'days', source: 'assumption' }),
+  pilotTatSlackDays: a({ id: 'pilotTatSlackDays', label: 'Guardrail: max added delivery TAT', value: 0.5, unit: 'days', source: 'assumption' }),
   pilotPhaseDays: a({ id: 'pilotPhaseDays', label: 'Phase length', value: 30, unit: 'days', source: 'assumption' }),
 } as const
 
