@@ -14,6 +14,8 @@ test.afterEach(async () => {
 })
 
 async function shot(page: Page, name: string, project: string) {
+  // Full-page captures start from the top so the sticky header is drawn once, in place
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.waitForTimeout(300)
   await page.screenshot({ path: `docs/screens/${project}-${name}.jpg`, type: 'jpeg', quality: 72, fullPage: project !== 'tablet' })
 }
@@ -140,9 +142,25 @@ test('impact: deck values, toggles, shareable URL, drawer', async ({ page }, inf
   await expect(page.getByRole('dialog')).toBeHidden()
 })
 
-test('pilot: sizing wording and guardrails', async ({ page }, info) => {
+test('pilot: honest power calculator, pincodes beat weeks, guardrails', async ({ page }, info) => {
   await page.goto('/#/pilot')
-  await expect(page.getByText(/50 orders per pincode per week, across the 90-day pilot/)).toBeVisible()
+  await expect(page.getByTestId('pilot-headline')).toContainText('not a 3-point shift')
+  await expect(page.getByTestId('pilot-headline')).toContainText('6.3 pts')
+  await expect(page.getByTestId('n-unclustered')).toHaveText('1,759')
+  await expect(page.getByTestId('mde')).toHaveText('6.3 pts')
+  await expect(page.getByTestId('weeks-needed')).toHaveText('Never')
+  await expect(page.getByTestId('mde-by-icc')).toContainText('1.8 pts')
+  await expect(page.getByTestId('mde-by-icc')).toContainText('9.3 pts')
+  const pw = page.getByTestId('pincodes-vs-weeks')
+  await expect(pw).toContainText('6.2 pts')
+  await expect(pw).toContainText('4.6 pts')
+  // No clustering: the target becomes reachable in 4 weeks
+  await page.locator('#pc-icc').fill('0')
+  await expect(page.getByTestId('weeks-needed')).toHaveText('4')
+  await expect(page.getByTestId('mde')).toHaveText('1.8 pts')
+  await page.getByRole('button', { name: 'Reset to the planned design' }).click()
+  await expect(page.getByTestId('mde')).toHaveText('6.3 pts')
+  await expect(page.getByText(/power to detect 3/i)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Guardrails' })).toBeVisible()
   await shot(page, '08-pilot', info.project.name)
 })
@@ -159,6 +177,8 @@ test('demo: captions with pause, skip and restart', async ({ page }, info) => {
   await expect(cap).toContainText('17%')
   await page.goto('/#/demo?step=9')
   await expect(cap).toContainText('₹5.4L')
+  await page.goto('/#/demo?step=10')
+  await expect(cap).toContainText('not 3')
   await shot(page, '09-demo', info.project.name)
 })
 
