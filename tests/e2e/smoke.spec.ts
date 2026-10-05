@@ -272,7 +272,7 @@ test('verify card: one phone QR on large screens, wrapping repo link, four butto
 })
 
 test('layout: every surface link visible and no sideways page scroll on any route', async ({ page }) => {
-  for (const r of ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo']) {
+  for (const r of ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture']) {
     await page.goto(`/#${r}`)
     await expect(page.locator('h1').first()).toBeVisible()
     const m = await page.evaluate(() => {
@@ -299,4 +299,20 @@ test('hub: orders show risk, nudge and timer without sideways scrolling', async 
     return box.right <= innerWidth + 0.5 && (!scroller || scroller.scrollWidth <= scroller.clientWidth)
   })
   expect(fits).toBe(true)
+})
+
+test('architecture: pipeline, events, data needs, build vs integrate, failure modes, Valmo assumptions flagged', async ({ page }, info) => {
+  await page.goto('/#/')
+  await page.getByRole('link', { name: 'how it would plug into Valmo' }).click()
+  await expect(page).toHaveURL(/#\/architecture/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Events in, decisions out')
+  await expect(page.getByTestId('pipeline').locator('li')).toHaveCount(6)
+  for (const t of ['Risk scoring', 'Messaging ladder', 'Rider app', 'Hub control tower', 'Hub resale']) await expect(page.getByTestId('pipeline')).toContainText(t)
+  await expect(page.getByTestId('events').locator('tbody tr')).toHaveCount(9)
+  await expect(page.getByTestId('events')).toContainText('attempt.call_logged')
+  expect(await page.getByText('To confirm with Valmo').count()).toBeGreaterThanOrEqual(8)
+  await expect(page.getByTestId('build-vs-integrate')).toContainText('Integrate')
+  await expect(page.getByTestId('failure-modes').locator('li')).toHaveCount(7)
+  await expect(page.getByText('No integration exists today', { exact: false })).toBeVisible()
+  await shot(page, '11-architecture', info.project.name)
 })
