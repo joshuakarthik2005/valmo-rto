@@ -83,6 +83,7 @@ jobs:
           - { route: '/impact', slug: impact }
           - { route: '/pilot', slug: pilot }
           - { route: '/demo', slug: demo }
+          - { route: '/architecture', slug: architecture }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

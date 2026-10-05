@@ -12,7 +12,8 @@
         "http://localhost:4173/#/resale",
         "http://localhost:4173/#/impact",
         "http://localhost:4173/#/pilot",
-        "http://localhost:4173/#/demo"
+        "http://localhost:4173/#/demo",
+        "http://localhost:4173/#/architecture"
       ],
       "settings": { "formFactor": "mobile", "chromeFlags": "--headless=new --no-sandbox" }
     },
