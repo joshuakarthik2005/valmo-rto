@@ -229,3 +229,19 @@ describe('Business-day helpers', () => {
     expect(businessDaysBetween(back, mon)).toBe(5)
   })
 })
+
+describe('Placeholder rider attempt fee', () => {
+  it('is labelled a placeholder assumption', () => {
+    expect(A.riderAttemptFee.source).toBe('assumption')
+    expect(A.riderAttemptFee.label).toMatch(/placeholder/)
+  })
+  it('never feeds the headline or the combined range', () => {
+    const base = defaultInputs()
+    const bumped = { ...base, riderAttemptFee: 999 }
+    for (const c of ['conservative', 'ceiling'] as const) {
+      expect(combined(c, 'sequenced', bumped)).toEqual(combined(c, 'sequenced', base))
+    }
+    expect(networkIllustration(bumped)).toEqual(networkIllustration(base))
+    expect(baseline(bumped)).toEqual(baseline(base))
+  })
+})

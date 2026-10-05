@@ -67,7 +67,7 @@ export const A = {
   returnPolicyDays: a({ id: 'returnPolicyDays', label: 'Meesho return policy window', value: 45, unit: 'days', source: 'case' }),
 
   // ---- Rider incentives ----
-  riderAttemptFee: a({ id: 'riderAttemptFee', label: 'Standard attempt fee (protected when verified)', value: 15, unit: 'rupees', source: 'assumption', note: 'Placeholder; replace with the actual Valmo rate card.' }),
+  riderAttemptFee: a({ id: 'riderAttemptFee', label: 'Standard attempt fee (protected when verified), placeholder', value: 15, unit: 'rupees', source: 'assumption', note: 'Assumption (placeholder): replace with the actual Valmo rate card. Never used in any headline number or the combined range.' }),
   riderPremiumMin: a({ id: 'riderPremiumMin', label: 'High-risk delivery premium, low', value: 5, unit: 'rupees', source: 'assumption' }),
   riderPremiumMax: a({ id: 'riderPremiumMax', label: 'High-risk delivery premium, high', value: 10, unit: 'rupees', source: 'assumption' }),
 

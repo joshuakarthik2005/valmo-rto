@@ -8,3 +8,4 @@ test-results
 playwright-report
 src/generated
 *.tsbuildinfo
+scratchpad/

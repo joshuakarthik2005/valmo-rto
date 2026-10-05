@@ -24,7 +24,8 @@ describe('Verify-it-yourself QR codes', () => {
       expect(readFileSync(path, 'utf8')).toBe(await QRCode.toString(url, { ...opts, type: 'svg' }))
     })
     const png = `docs/qr-${name}.png`
-    it.runIf(existsSync(png))(`docs/qr-${name}.png decodes to ${url}`, () => {
+    it(`docs/qr-${name}.png decodes to ${url}`, () => {
+      expect(existsSync(png), `${png} missing: run node scripts/gen-qr.mjs --png`).toBe(true)
       expect(decodePng(readFileSync(png))).toBe(url)
     })
   }

@@ -13,7 +13,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', '"Inter Fallback"', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
-        display: ['"Fraunces"', 'Georgia', 'serif'],
+        display: ['Fraunces', '"Fraunces Fallback"', 'Georgia', 'serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },
       borderRadius: { xl2: '1.25rem' },

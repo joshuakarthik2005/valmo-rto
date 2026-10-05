@@ -109,7 +109,7 @@ export default function Rider() {
             </dl>
             <p className="mt-3 text-ink-soft">
               Completed far-hub or first-time-address deliveries earn {rupees(inputs.riderPremiumMin)}; both together earn {rupees(inputs.riderPremiumMax)}.
-              A verified failed attempt keeps the standard {rupees(inputs.riderAttemptFee)} attempt fee (placeholder rate, assumption).
+              A verified failed attempt keeps the standard {rupees(inputs.riderAttemptFee)} attempt fee. Assumption (placeholder): not the real rate card, and not used in any headline number.
             </p>
           </section>
 
