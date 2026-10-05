@@ -178,3 +178,47 @@ test('legacy prototype is preserved', async ({ page }) => {
   await page.goto('/legacy/')
   await expect(page).toHaveTitle(/Route Cause/)
 })
+
+test('verify card: one phone QR on large screens, wrapping repo link, four buttons', async ({ page }, info) => {
+  for (const route of ['/', '/customer']) {
+    await page.goto(`/#${route}`)
+    const card = page.getByTestId('verify-card').first()
+    await expect(card.getByRole('heading', { name: 'Verify it yourself' })).toBeVisible()
+    const repo = card.getByRole('link', { name: 'github.com/joshuakarthik2005/valmo-rto' })
+    await expect(repo).toHaveAttribute('href', 'https://github.com/joshuakarthik2005/valmo-rto')
+    expect(await repo.locator('wbr').count()).toBe(2)
+    for (const name of ['Code', 'Tests', 'Replay', 'Design boards']) {
+      await expect(card.getByRole('link', { name, exact: true })).toBeVisible()
+    }
+    // Only one QR on the card, and only from 1024 px up
+    await expect(card.locator('svg')).toHaveCount(1)
+    const qr = card.getByTestId('phone-qr')
+    const wide = (page.viewportSize()?.width ?? 0) >= 1024
+    if (wide) {
+      await expect(qr).toBeVisible()
+      await expect(qr).toContainText('Try it on your phone')
+      await expect(card.getByRole('img', { name: 'QR code for valmo-jet.vercel.app' })).toBeVisible()
+    } else {
+      await expect(qr).toBeHidden()
+    }
+  }
+  // Squeeze the link: every line except the last must end with "/" (never mid-word, never at the hyphen)
+  for (const w of [260, 200, 140]) {
+    const lines = await page.getByTestId('verify-card').first().getByTestId('repo-link').evaluate((a, w) => {
+      ;(a.parentElement as HTMLElement).style.width = `${w}px`
+      const r = document.createRange()
+      const rows: Record<number, string> = {}
+      const walker = document.createTreeWalker(a, NodeFilter.SHOW_TEXT)
+      let n: Node | null
+      while ((n = walker.nextNode())) {
+        const t = n as Text
+        for (let i = 0; i < t.length; i++) { r.setStart(t, i); r.setEnd(t, i + 1); const top = Math.round(r.getBoundingClientRect().top); rows[top] = (rows[top] ?? '') + t.data[i] }
+      }
+      return Object.values(rows)
+    }, w)
+    expect(lines.join('')).toBe('github.com/joshuakarthik2005/valmo-rto')
+    for (const l of lines.slice(0, -1)) expect(l.endsWith('/')).toBe(true)
+  }
+  await page.reload()
+  await shot(page, '10-verify-card', info.project.name)
+})
