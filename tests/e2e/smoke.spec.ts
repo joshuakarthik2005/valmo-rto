@@ -2,8 +2,16 @@ import { test, expect, type Page } from '@playwright/test'
 
 const errors: string[] = []
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, baseURL }) => {
   errors.length = 0
+  // Protected Vercel previews: send the short-lived dev OIDC token (from `vercel env pull .env.local`)
+  // only to the deployment's own origin, never to third parties such as Google Fonts.
+  const token = process.env.VERCEL_OIDC_TOKEN
+  if (token && baseURL && !baseURL.includes('localhost')) {
+    const origin = new URL(baseURL).origin
+    await page.route((u) => u.origin === origin, (route) =>
+      route.continue({ headers: { ...route.request().headers(), 'x-vercel-trusted-oidc-idp-token': token } }))
+  }
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
   page.on('pageerror', (e) => errors.push(String(e)))
 })
