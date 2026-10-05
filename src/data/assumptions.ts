@@ -75,9 +75,12 @@ export const A = {
   networkOrdersFY25: a({ id: 'networkOrdersFY25', label: 'Valmo orders, FY25', value: 764_000_000, unit: 'orders', source: 'assumption', note: 'Desk research based on the Meesho IPO prospectus. Used only for an upper-bound illustration, not a forecast.' }),
 
   // ---- Pilot ----
-  pilotPincodes: a({ id: 'pilotPincodes', label: 'Pilot pincodes (treatment)', value: 20, unit: 'count', source: 'assumption' }),
-  pilotControlPincodes: a({ id: 'pilotControlPincodes', label: 'Matched control pincodes', value: 20, unit: 'count', source: 'assumption' }),
-  pilotMinOrdersPerPinWeek: a({ id: 'pilotMinOrdersPerPinWeek', label: 'Minimum orders per pincode per week, across the 90-day pilot', value: 50, unit: 'orders', source: 'assumption' }),
+  pilotPincodesTreated: a({ id: 'pilotPincodesTreated', label: 'Treated pincodes (the highest-RTO pincodes)', value: 20, unit: 'count', source: 'assumption', note: 'Pilot design stated in the submitted deck: "the 20 highest-RTO pincodes, against a matched control group".', range: { min: 4, max: 120, step: 1 } }),
+  pilotPincodesControl: a({ id: 'pilotPincodesControl', label: 'Matched control pincodes', value: 20, unit: 'count', source: 'assumption', note: 'Assumption: the deck does not state the control size. Set equal to the treated arm, as the power calculation assumes equal arms.' }),
+  pilotOrdersPerPinWeek: a({ id: 'pilotOrdersPerPinWeek', label: 'Orders per pincode per week', value: 50, unit: 'orders', source: 'assumption', range: { min: 20, max: 200, step: 10 } }),
+  pilotIcc: a({ id: 'pilotIcc', label: 'Intra-cluster correlation (ICC) of RTO within a pincode', value: 0.02, unit: 'share', source: 'assumption', note: 'How alike RTO outcomes are within one pincode. Not measured yet: the first weeks of the pilot would estimate it. The slider spans 0 to 0.05.', range: { min: 0, max: 0.05, step: 0.005 } }),
+  pilotAlpha: a({ id: 'pilotAlpha', label: 'Significance level (two-sided)', value: 0.05, unit: 'share', source: 'assumption', note: 'Statistical convention.' }),
+  pilotPower: a({ id: 'pilotPower', label: 'Statistical power', value: 0.8, unit: 'share', source: 'assumption', note: 'Statistical convention.' }),
   pilotDays: a({ id: 'pilotDays', label: 'Pilot length', value: 90, unit: 'days', source: 'assumption' }),
   pilotTatSlackDays: a({ id: 'pilotTatSlackDays', label: 'Guardrail: max added delivery TAT', value: 0.5, unit: 'days', source: 'assumption' }),
   pilotPhaseDays: a({ id: 'pilotPhaseDays', label: 'Phase length', value: 30, unit: 'days', source: 'assumption' }),
@@ -109,3 +112,14 @@ export const OPEN_ITEMS = [
   'Native-speaker review of Hinglish and Hindi message copy.',
   'Actual rider rate card, to replace the placeholder attempt fee.',
 ]
+
+/** Slider bounds for the pilot power calculator (defaults come from the model: blended RTO and Move 1 conservative). */
+export const PILOT_CALC_RANGES = {
+  baseline: { min: 0.08, max: 0.3, step: 0.005 },
+  shift: { min: 0.01, max: 0.1, step: 0.002 },
+  weeks: { min: 4, max: 52, step: 1 },
+}
+/** ICC values shown in the sensitivity tables. */
+export const PILOT_ICC_TABLE = [0, 0.01, 0.02, 0.05]
+/** Reference shift for "what would a 3-point drop need": a question judges ask, not a forecast. */
+export const PILOT_REFERENCE_SHIFT = 0.03

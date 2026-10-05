@@ -14,6 +14,8 @@ test.afterEach(async () => {
 })
 
 async function shot(page: Page, name: string, project: string) {
+  // Full-page captures start from the top so the sticky header is drawn once, in place
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.waitForTimeout(300)
   await page.screenshot({ path: `docs/screens/${project}-${name}.jpg`, type: 'jpeg', quality: 72, fullPage: project !== 'tablet' })
 }
@@ -140,9 +142,32 @@ test('impact: deck values, toggles, shareable URL, drawer', async ({ page }, inf
   await expect(page.getByRole('dialog')).toBeHidden()
 })
 
-test('pilot: sizing wording and guardrails', async ({ page }, info) => {
+test('pilot: 20 + 20 design, generated headline, pincodes beat weeks, guardrails', async ({ page }, info) => {
   await page.goto('/#/pilot')
-  await expect(page.getByText(/50 orders per pincode per week, across the 90-day pilot/)).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('20 highest-RTO pincodes against 20 matched controls')
+  const head = page.getByTestId('pilot-headline')
+  await expect(head).toContainText('With 20 treated and 20 control pincodes, 50 orders per pincode per week for 13 weeks, and an ICC of 0.02')
+  await expect(head).toContainText('detect a drop of about 4.6 points')
+  await expect(head).toContainText('The 3.4 points target set above is below what this design can detect; it would need about 38 pincodes per arm')
+  await expect(head).toContainText('A 3-point shift is not: it would need about 50 pincodes per arm at this ICC, or 27 if the ICC were 0.01')
+  await expect(page.getByTestId('n-unclustered')).toHaveText('1,759')
+  await expect(page.getByTestId('mde')).toHaveText('4.6 pts')
+  await expect(page.getByTestId('weeks-needed')).toHaveText('Never')
+  await expect(page.getByTestId('pins-for-3')).toHaveText('50')
+  const icc = page.getByTestId('mde-by-icc')
+  for (const t of ['1.3 pts', '3.4 pts', '4.6 pts', '6.9 pts', '27', '118']) await expect(icc).toContainText(t)
+  const pw = page.getByTestId('pincodes-vs-weeks')
+  await expect(pw).toContainText('4.5 pts')
+  await expect(pw).toContainText('3.3 pts')
+  // The headline follows the inputs: with no clustering, 3 points is within reach
+  await page.locator('#pc-icc').fill('0')
+  await expect(page.getByTestId('weeks-needed')).toHaveText('2')
+  await expect(page.getByTestId('mde')).toHaveText('1.3 pts')
+  await expect(head).toContainText('A 3-point shift is within reach of this design')
+  await expect(head).toContainText('and an ICC of 0,')
+  await page.getByRole('button', { name: 'Reset to the planned design' }).click()
+  await expect(page.getByTestId('mde')).toHaveText('4.6 pts')
+  await expect(page.getByText(/power to detect 3/i)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Guardrails' })).toBeVisible()
   await shot(page, '08-pilot', info.project.name)
 })
@@ -159,6 +184,9 @@ test('demo: captions with pause, skip and restart', async ({ page }, info) => {
   await expect(cap).toContainText('17%')
   await page.goto('/#/demo?step=9')
   await expect(cap).toContainText('₹5.4L')
+  await page.goto('/#/demo?step=10')
+  await expect(cap).toContainText('about 4.6 points')
+  await expect(cap).toContainText('about 50 pincodes per arm')
   await shot(page, '09-demo', info.project.name)
 })
 

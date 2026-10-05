@@ -25,7 +25,7 @@ Type: Fraunces (display) and Inter (body), with body text at 16px or more and no
 | Verify-it-yourself card | `src/components/VerifyCard.tsx` | The QR codes are generated at build time from `src/data/links.ts` |
 | Phone frame | `src/components/Phone.tsx` | Used for the WhatsApp, in-app, rider and buyer mocks |
 | Segmented control, Stat, Callout, SourcePill, PageHeader | `src/components/ui.tsx` | SourcePill tags every assumption with its source |
-| Waterfall, gauge, assumptions drawer | `src/surfaces/Impact.tsx` | Plain HTML/SVG for speed; Recharts is used for the pilot time series |
+| Waterfall, gauge, assumptions drawer | `src/surfaces/Impact.tsx` | Plain HTML/SVG for speed (no chart library) |
 
 Motion uses framer-motion, loaded lazily with the first interactive surface. It honours `prefers-reduced-motion` through `MotionConfig reducedMotion="user"` plus a CSS override.
 
