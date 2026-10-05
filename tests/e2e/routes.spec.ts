@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 import { baseline, combined, move1, move2, lakh, pct, pctTrim, count } from '../../src/lib/model'
 
 // Fresh context per test, no auth: every route loads with zero console errors,
