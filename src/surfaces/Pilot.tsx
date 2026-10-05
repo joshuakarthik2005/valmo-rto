@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { PageHeader, Callout, SimBadge, SourcePill } from '../components/ui'
-import { A, PILOT_CALC_RANGES, PILOT_ICC_TABLE } from '../data/assumptions'
+import { A, PILOT_CALC_RANGES, PILOT_ICC_TABLE, PILOT_REFERENCE_SHIFT } from '../data/assumptions'
 import {
-  pilotSizing, pilotPower, mde, effectiveN, twoPropN, weeksNeeded, designEffect, upiSwitch, messagingCostPerOrder,
-  pct, pctTrim, rupees, count, defaultInputs, type PowerDesign,
+  pilotSizing, pilotPower, mde, effectiveN, twoPropN, weeksNeeded, designEffect, pincodesNeeded, upiSwitch, messagingCostPerOrder,
+  pct, rupees, count, defaultInputs, type PowerDesign,
 } from '../lib/model'
 
 const base = defaultInputs()
@@ -26,11 +26,12 @@ const METRICS = [
 ]
 
 const pts = (x: number) => (Number.isFinite(x) ? `${(x * 100).toFixed(1)} pts` : 'not reachable')
+const points = (x: number) => `${(x * 100).toFixed(1)} points`
 
 export default function Pilot() {
   const [p1, setP1] = useState(planned.p1)
   const [shift, setShift] = useState(planned.shift)
-  const [pins, setPins] = useState(base.pilotPincodesPerArm)
+  const [pins, setPins] = useState(base.pilotPincodesTreated)
   const [perWeek, setPerWeek] = useState(base.pilotOrdersPerPinWeek)
   const [weeks, setWeeks] = useState(size.weeks)
   const [icc, setIcc] = useState(base.pilotIcc)
@@ -52,12 +53,33 @@ export default function Pilot() {
         { label: 'Double the pincodes', d: { ...d, pincodesPerArm: pins * 2 } },
         { label: 'Four times the pincodes', d: { ...d, pincodesPerArm: pins * 4 } },
       ].map((o) => ({ ...o, mde: mde(p1, o.d, base.pilotAlpha, base.pilotPower) })),
-      byIcc: PILOT_ICC_TABLE.map((c) => ({ icc: c, mde: mde(p1, { ...d, icc: c }, base.pilotAlpha, base.pilotPower) })),
+      byIcc: PILOT_ICC_TABLE.map((c) => ({
+        icc: c,
+        mde: mde(p1, { ...d, icc: c }, base.pilotAlpha, base.pilotPower),
+        pinsFor3: pincodesNeeded(p1, p1 - PILOT_REFERENCE_SHIFT, { ordersPerPinWeek: perWeek, weeks, icc: c }, base.pilotAlpha, base.pilotPower),
+      })),
+      pinsFor3: pincodesNeeded(p1, p1 - PILOT_REFERENCE_SHIFT, { ordersPerPinWeek: perWeek, weeks, icc }, base.pilotAlpha, base.pilotPower),
+      pinsForTarget: pincodesNeeded(p1, p2, { ordersPerPinWeek: perWeek, weeks, icc }, base.pilotAlpha, base.pilotPower),
     }
   }, [p1, shift, pins, perWeek, weeks, icc])
 
-  const isPlanned = p1 === planned.p1 && shift === planned.shift && pins === base.pilotPincodesPerArm && perWeek === base.pilotOrdersPerPinWeek && weeks === size.weeks && icc === base.pilotIcc
-  const reset = () => { setP1(planned.p1); setShift(planned.shift); setPins(base.pilotPincodesPerArm); setPerWeek(base.pilotOrdersPerPinWeek); setWeeks(size.weeks); setIcc(base.pilotIcc) }
+  const isPlanned = p1 === planned.p1 && shift === planned.shift && pins === base.pilotPincodesTreated && perWeek === base.pilotOrdersPerPinWeek && weeks === size.weeks && icc === base.pilotIcc
+  const reset = () => { setP1(planned.p1); setShift(planned.shift); setPins(base.pilotPincodesTreated); setPerWeek(base.pilotOrdersPerPinWeek); setWeeks(size.weeks); setIcc(base.pilotIcc) }
+
+  const ref = PILOT_REFERENCE_SHIFT
+  const refPts = (ref * 100).toFixed(0)
+  const reachable = r.mde <= ref
+  const headline = [
+    `With ${pins} treated and ${pins} control pincodes, ${perWeek} orders per pincode per week for ${weeks} weeks, and an ICC of ${String(+icc.toFixed(3))},`,
+    `this pilot can detect a drop of about ${points(r.mde)} (from ${pct(p1, 1)} to about ${pct(Math.max(0, p1 - r.mde), 1)}).`,
+    reachable
+      ? `A ${refPts}-point shift is within reach of this design.`
+      : `A ${refPts}-point shift is not: it would need about ${count(r.pinsFor3)} pincodes per arm at this ICC, or ${count(r.byIcc.find((x) => x.icc === 0.01)?.pinsFor3 ?? NaN)} if the ICC were 0.01.`,
+    r.detectable
+      ? `The ${points(shift)} target set above is detectable.`
+      : `The ${points(shift)} target set above is below what this design can detect; it would need about ${count(r.pinsForTarget)} pincodes per arm.`,
+    'Adding pincodes moves this; adding weeks barely does.',
+  ].join(' ')
 
   const upi = upiSwitch(A.upiDiscountAlt.value)
   const guardrails = [
@@ -70,7 +92,7 @@ export default function Pilot() {
     <div>
       <PageHeader
         eyebrow="Surface 6 · Pilot plan"
-        title={`${size.totalPincodes} pincodes (${base.pilotPincodesPerArm} treatment, ${base.pilotPincodesPerArm} matched control), ${base.pilotDays} days`}
+        title={`The ${size.treated} highest-RTO pincodes against ${size.control} matched controls, ${base.pilotDays} days`}
         lede="How we would test it before scaling, and what this pilot can and cannot detect."
       >
         <SimBadge className="mt-3" />
@@ -79,12 +101,8 @@ export default function Pilot() {
       <section aria-labelledby="honest-h" className="mb-6">
         <Callout tone="warn">
           <h2 id="honest-h" className="font-sans text-lg font-bold text-ink">What this pilot can detect</h2>
-          <p className="mt-1 text-ink" data-testid="pilot-headline">
-            Orders in the same pincode behave alike, so {count(size.ordersPerArm)} orders per arm count for far fewer independent observations.
-            With an ICC of {base.pilotIcc}, the planned design detects a drop of about <strong className="num">{pts(planned.mde)}</strong> (from {pctTrim(planned.p1)} to about {pct(planned.p1 - planned.mde, 1)}),
-            {' '}<strong>not a 3-point shift</strong>. Move 1's conservative estimate ({pts(planned.shift)}) is below that threshold.
-            This pilot can confirm a large effect or catch a failure early. Measuring a small effect needs more pincodes, not more weeks.
-          </p>
+          <p className="mt-1 text-ink" data-testid="pilot-headline">{headline}</p>
+          <p className="mt-2 text-sm text-ink-soft">This sentence is generated from the calculator below and updates with it.</p>
         </Callout>
       </section>
 
@@ -97,7 +115,7 @@ export default function Pilot() {
         <div className="mt-4 grid md:grid-cols-2 gap-x-8 gap-y-5">
           <Slider id="pc-base" label="Baseline RTO" value={p1} fmt={(v) => pct(v, 1)} {...PILOT_CALC_RANGES.baseline} onChange={setP1} tag="case" />
           <Slider id="pc-shift" label="Target reduction" value={shift} fmt={pts} {...PILOT_CALC_RANGES.shift} onChange={setShift} tag="assumption" />
-          <Slider id="pc-pins" label="Pincodes per arm" value={pins} fmt={String} {...A.pilotPincodesPerArm.range!} onChange={setPins} tag="assumption" />
+          <Slider id="pc-pins" label="Pincodes per arm (treated = control)" value={pins} fmt={String} {...A.pilotPincodesTreated.range!} onChange={setPins} tag="assumption" />
           <Slider id="pc-week" label="Orders per pincode per week" value={perWeek} fmt={String} {...A.pilotOrdersPerPinWeek.range!} onChange={setPerWeek} tag="assumption" />
           <Slider id="pc-weeks" label="Weeks" value={weeks} fmt={String} {...PILOT_CALC_RANGES.weeks} onChange={setWeeks} tag="assumption" />
           <Slider id="pc-icc" label="ICC (how alike orders in one pincode are)" value={icc} fmt={(v) => v.toFixed(3)} {...A.pilotIcc.range!} onChange={setIcc} tag="assumption" />
@@ -129,6 +147,11 @@ export default function Pilot() {
             </dd>
           </div>
         </dl>
+        <div className="mt-3 rounded-xl border border-plum/15 p-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-ink-soft">Pincodes per arm needed for a {refPts}-point shift at ICC {icc.toFixed(3)}:</span>
+          <span className="num text-2xl font-bold text-plum" data-testid="pins-for-3">{count(r.pinsFor3)}</span>
+          <span className="text-sm text-ink-soft">({perWeek} orders per pincode per week, {weeks} weeks)</span>
+        </div>
         {!isPlanned && <button className="btn-ghost mt-4" onClick={reset}>Reset to the planned design</button>}
       </section>
 
@@ -149,13 +172,13 @@ export default function Pilot() {
         </section>
         <section aria-labelledby="icc-h" className="card">
           <h2 id="icc-h" className="text-xl font-bold">How much clustering matters</h2>
-          <p className="text-ink-soft">MDE for this design as the ICC varies. The ICC is unknown until the pilot runs.</p>
+          <p className="text-ink-soft">MDE for this design as the ICC varies, and the pincodes per arm a {refPts}-point shift would need. The ICC is an assumption until the pilot measures it.</p>
           <table className="mt-3 w-full text-left" data-testid="mde-by-icc">
-            <thead className="text-sm text-ink-soft"><tr><th className="py-1">ICC</th><th>Design effect</th><th>MDE</th></tr></thead>
+            <thead className="text-sm text-ink-soft"><tr><th className="py-1">ICC</th><th>Design effect</th><th>MDE</th><th>Pincodes/arm for {refPts} pts</th></tr></thead>
             <tbody>
               {r.byIcc.map((x) => (
                 <tr key={x.icc} className={`border-t border-plum/10 ${x.icc === icc ? 'font-bold bg-plum-100/50' : ''}`}>
-                  <td className="py-2 num">{x.icc.toFixed(2)}</td><td className="num">{designEffect(r.eff.m, x.icc).toFixed(1)}</td><td className="num">{pts(x.mde)}</td>
+                  <td className="py-2 num">{x.icc.toFixed(2)}</td><td className="num">{designEffect(r.eff.m, x.icc).toFixed(1)}</td><td className="num">{pts(x.mde)}</td><td className="num">{count(x.pinsFor3)}</td>
                 </tr>
               ))}
             </tbody>
