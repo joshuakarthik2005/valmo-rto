@@ -250,9 +250,100 @@ export function businessDaysBetween(a: Date, b: Date) {
 export function pilotSizing(i: Inputs = defaultInputs()) {
   const weeks = Math.round(i.pilotDays / 7)
   const phases = i.pilotDays / i.pilotPhaseDays
-  const minOrdersPerPin = i.pilotMinOrdersPerPinWeek * weeks
-  const minTreatmentOrders = minOrdersPerPin * i.pilotPincodes
-  return { weeks, phases, minOrdersPerPin, minTreatmentOrders }
+  const ordersPerPin = i.pilotOrdersPerPinWeek * weeks
+  const ordersPerArm = ordersPerPin * i.pilotPincodesPerArm
+  return { weeks, phases, ordersPerPin, ordersPerArm, totalPincodes: i.pilotPincodesPerArm * 2 }
+}
+
+// ---------- Pilot power (two proportions, cluster-randomised by pincode) ----------
+
+/** Inverse standard-normal CDF (Acklam's algorithm, relative error < 1.2e-9). */
+export function normInv(p: number): number {
+  if (!(p > 0 && p < 1)) throw new RangeError('p must be in (0, 1)')
+  const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239]
+  const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572]
+  const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783]
+  const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416]
+  const lo = 0.02425
+  if (p < lo) {
+    const q = Math.sqrt(-2 * Math.log(p))
+    return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
+  }
+  if (p > 1 - lo) return -normInv(1 - p)
+  const q = p - 0.5
+  const r = q * q
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1)
+}
+
+/**
+ * Orders per arm needed to detect p1 vs p2 with an unclustered two-proportion z-test
+ * (two-sided alpha, given power): n = [z_a/2 * sqrt(2 p q) + z_b * sqrt(p1 q1 + p2 q2)]^2 / (p1 - p2)^2.
+ * Not rounded; callers round up.
+ */
+export function twoPropN(p1: number, p2: number, alpha = 0.05, power = 0.8) {
+  const za = normInv(1 - alpha / 2)
+  const zb = normInv(power)
+  const pBar = (p1 + p2) / 2
+  const num = za * Math.sqrt(2 * pBar * (1 - pBar)) + zb * Math.sqrt(p1 * (1 - p1) + p2 * (1 - p2))
+  return (num * num) / ((p1 - p2) * (p1 - p2))
+}
+
+/** Design effect for cluster randomisation: 1 + (m - 1) * ICC, m = orders per pincode over the pilot. */
+export function designEffect(m: number, icc: number) {
+  return 1 + (m - 1) * icc
+}
+
+export interface PowerDesign { pincodesPerArm: number; ordersPerPinWeek: number; weeks: number; icc: number }
+
+/** Effective (independent-equivalent) orders per arm for a clustered design. */
+export function effectiveN(d: PowerDesign) {
+  const m = d.ordersPerPinWeek * d.weeks
+  const deff = designEffect(m, d.icc)
+  return { m, deff, raw: m * d.pincodesPerArm, eff: (m * d.pincodesPerArm) / deff }
+}
+
+/** Minimum detectable reduction (in proportion points) from baseline p1 for a design. Bisection on twoPropN. */
+export function mde(p1: number, d: PowerDesign, alpha = 0.05, power = 0.8) {
+  const { eff } = effectiveN(d)
+  let lo = 1e-6, hi = p1 - 1e-6
+  if (twoPropN(p1, p1 - hi, alpha, power) > eff) return NaN
+  for (let k = 0; k < 100; k++) {
+    const mid = (lo + hi) / 2
+    if (twoPropN(p1, p1 - mid, alpha, power) > eff) lo = mid
+    else hi = mid
+  }
+  return hi
+}
+
+/**
+ * Weeks needed to detect p1 -> p2 with a given number of pincodes and weekly volume.
+ * With ICC > 0, effective n per arm can never exceed pincodes / ICC, so more weeks may not help: returns Infinity.
+ */
+export function weeksNeeded(p1: number, p2: number, d: Omit<PowerDesign, 'weeks'>, alpha = 0.05, power = 0.8, maxWeeks = 520) {
+  const need = twoPropN(p1, p2, alpha, power)
+  for (let w = 1; w <= maxWeeks; w++) {
+    if (effectiveN({ ...d, weeks: w }).eff >= need) return w
+  }
+  return Infinity
+}
+
+/** Everything the pilot calculator shows, from one set of inputs. */
+export function pilotPower(i: Inputs = defaultInputs(), target = combined('conservative', 'sequenced', i).rtoRateAfter) {
+  const p1 = baseline(i).rtoRate
+  const { weeks } = pilotSizing(i)
+  const design: PowerDesign = { pincodesPerArm: i.pilotPincodesPerArm, ordersPerPinWeek: i.pilotOrdersPerPinWeek, weeks, icc: i.pilotIcc }
+  const nUnclustered = Math.ceil(twoPropN(p1, target, i.pilotAlpha, i.pilotPower))
+  const eff = effectiveN(design)
+  const nClustered = Math.ceil(nUnclustered * eff.deff)
+  return {
+    p1, target, shift: p1 - target, design, weeks, ...eff,
+    nUnclustered, nClustered,
+    mde: mde(p1, design, i.pilotAlpha, i.pilotPower),
+    weeksNeeded: weeksNeeded(p1, target, design, i.pilotAlpha, i.pilotPower),
+    detectable: eff.eff >= nUnclustered,
+    /** Upper limit on effective n per arm as weeks grow without bound */
+    effCeiling: i.pilotIcc > 0 ? i.pilotPincodesPerArm / i.pilotIcc : Infinity,
+  }
 }
 
 // ---------- Formatting ----------
@@ -301,28 +392,7 @@ export function resalePrice(price: number, i: Inputs = defaultInputs()) {
   return price - i.m2BuyerDiscount
 }
 
-// ---------- Pilot simulation (clearly labelled simulated on screen) ----------
-
-/** Deterministic pseudo-noise so the simulated chart is identical on every load. */
-function wobble(n: number, amp: number) {
-  return Math.sin(n * 12.9898) * amp
-}
-
-/** Weekly RTO% for treatment vs control: treatment ramps to the conservative Move 1 rate by week 4. */
-export function pilotSeries(i: Inputs = defaultInputs()) {
-  const { weeks } = pilotSizing(i)
-  const before = baseline(i).rtoRate
-  const after = combined('conservative', 'sequenced', i).rtoRateAfter
-  return Array.from({ length: weeks }, (_, k) => {
-    const w = k + 1
-    const ramp = Math.min(1, w / 4)
-    return {
-      week: w,
-      control: before + wobble(w, 0.004),
-      treatment: before - (before - after) * ramp + wobble(w + 7, 0.004),
-    }
-  })
-}
+// ---------- Pilot guardrails ----------
 
 /** Messaging cost per order, used as the cost-per-order guardrail. */
 export function messagingCostPerOrder(i: Inputs = defaultInputs()) {

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   baseline, distanceGradient, rootCauses, move1, upiSwitch, replyValue, move2PerParcel,
   move2, sensitivity, combined, networkIllustration, waterfall, validateUnavailable,
-  riderPremium, resaleChecks, pilotSizing, addBusinessDays, lakh, pctTrim, defaultInputs,
+  riderPremium, resaleChecks, pilotSizing, pilotPower, normInv, twoPropN, designEffect, mde, weeksNeeded, addBusinessDays, lakh, pctTrim, defaultInputs,
 } from './model'
 import { A, ROOT_CAUSES } from '../data/assumptions'
 
@@ -212,11 +212,56 @@ describe('Resale eligibility', () => {
 })
 
 describe('Pilot sizing', () => {
-  it('>= 50 orders/pincode/week across the 90-day pilot, three 30-day phases', () => {
+  it('10 pincodes per arm (20 in total), 50 orders/pincode/week across the 90-day pilot, three 30-day phases', () => {
     const p = pilotSizing()
     expect(p.phases).toBe(3)
-    expect(A.pilotMinOrdersPerPinWeek.value).toBe(50)
-    expect(p.minOrdersPerPin).toBe(50 * 13)
+    expect(p.weeks).toBe(13)
+    expect(p.totalPincodes).toBe(20)
+    expect(p.ordersPerPin).toBe(50 * 13)
+    expect(p.ordersPerArm).toBe(6_500)
+  })
+})
+
+describe('Pilot power (expected values computed independently with Python statistics.NormalDist)', () => {
+  it('normInv matches standard quantiles', () => {
+    expect(normInv(0.975)).toBeCloseTo(1.959964, 5)
+    expect(normInv(0.8)).toBeCloseTo(0.841621, 5)
+    expect(normInv(0.01)).toBeCloseTo(-2.326348, 5)
+  })
+  it('unclustered orders per arm: 17%->14% = 2,284; 17%->13.6% = 1,759; 17%->10% = 373', () => {
+    expect(Math.ceil(twoPropN(0.17, 0.14))).toBe(2_284)
+    expect(Math.ceil(twoPropN(0.17, 0.136))).toBe(1_759)
+    expect(Math.ceil(twoPropN(0.17, 0.1))).toBe(373)
+  })
+  it('design effect is 1 + (m - 1) * ICC with m = orders per pincode over the pilot', () => {
+    expect(designEffect(650, 0.02)).toBeCloseTo(13.98, 10)
+    expect(designEffect(650, 0)).toBe(1)
+  })
+  it('planned design (10 pincodes/arm, 50/wk, 13 wks) MDE ≈ 1.8 / 4.75 / 6.3 / 9.3 points at ICC 0 / .01 / .02 / .05', () => {
+    // Independent values (Python bisection): 1.8059, 4.7493, 6.3355, 9.3197 points
+    const d = { pincodesPerArm: 10, ordersPerPinWeek: 50, weeks: 13 }
+    const pts = [0, 0.01, 0.02, 0.05].map((icc) => mde(0.17, { ...d, icc }) * 100)
+    ;[1.8059, 4.7493, 6.3355, 9.3197].forEach((v, k) => expect(pts[k]).toBeCloseTo(v, 3))
+  })
+  it('with realistic clustering the planned pilot cannot detect a ~3-point shift', () => {
+    const p = pilotPower()
+    expect(p.p1).toBeCloseTo(0.17, 12)
+    expect(p.target).toBeCloseTo(0.136, 12)
+    expect(p.nUnclustered).toBe(1_759)
+    expect(p.detectable).toBe(false)
+    expect(p.mde).toBeGreaterThan(0.06)
+  })
+  it('adding pincodes beats adding weeks (ICC 0.02)', () => {
+    const base = { pincodesPerArm: 10, ordersPerPinWeek: 50, weeks: 13, icc: 0.02 }
+    const doubleWeeks = mde(0.17, { ...base, weeks: 26 })
+    const doublePins = mde(0.17, { ...base, pincodesPerArm: 20 })
+    expect(+(doubleWeeks * 100).toFixed(1)).toBe(6.2)
+    expect(+(doublePins * 100).toFixed(1)).toBe(4.6)
+    expect(doublePins).toBeLessThan(doubleWeeks)
+  })
+  it('with ICC > 0 more weeks cannot reach a 3.4-point shift at 10 pincodes/arm; with no clustering it takes 4 weeks', () => {
+    expect(weeksNeeded(0.17, 0.136, { pincodesPerArm: 10, ordersPerPinWeek: 50, icc: 0.02 })).toBe(Infinity)
+    expect(weeksNeeded(0.17, 0.136, { pincodesPerArm: 10, ordersPerPinWeek: 50, icc: 0 })).toBe(4)
   })
 })
 
