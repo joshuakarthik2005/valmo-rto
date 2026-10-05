@@ -1,1 +1,10 @@
+node_modules
+dist
 .vercel
+.env*
+*.mp4
+*.mov
+test-results
+playwright-report
+src/generated
+*.tsbuildinfo
