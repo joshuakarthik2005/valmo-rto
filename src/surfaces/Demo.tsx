@@ -1,8 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type ComponentType, type LazyExoticComponent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRoute, setParams } from '../lib/router'
-import { baseline, combined, replyValue, move2PerParcel, pilotPower, lakh, rupees, pct, pctTrim, count, defaultInputs } from '../lib/model'
+import { baseline, combined, replyValue, move2PerParcel, pilotPower, pilotSizing, pincodesNeeded, lakh, rupees, pct, pctTrim, count, defaultInputs } from '../lib/model'
 import { VerifyCard } from '../components/VerifyCard'
+import { PILOT_REFERENCE_SHIFT } from '../data/assumptions'
 // Already in the main bundle (it is the home page), so no extra round trip for step 1
 import Landing from './Landing'
 
@@ -23,6 +24,8 @@ const Pilot = lazy(load.pilot)
 
 
 const i = defaultInputs()
+const pp = pilotPower()
+const pp3 = pincodesNeeded(pp.p1, pp.p1 - PILOT_REFERENCE_SHIFT, { ordersPerPinWeek: i.pilotOrdersPerPinWeek, weeks: pilotSizing().weeks, icc: i.pilotIcc }, i.pilotAlpha, i.pilotPower)
 const b = baseline()
 const lo = combined('conservative')
 const hi = combined('ceiling')
@@ -39,7 +42,7 @@ const STEPS: Step[] = [
   { title: 'Resale: refused, then resold nearby', caption: `A refused parcel passes six checks, including the ${rupees(i.m2PriceCap)} cap. It is matched to a nearby buyer (same device blocked), invoiced automatically and delivered the next day. No match in ${i.m2WindowDays} business days means standard RTO.`, surface: Resale, link: '#/resale', secs: 14 },
   { title: 'Resale economics', caption: `Each resold parcel saves ${rupees(move2PerParcel().net)} net: ${rupees(i.reverseCost)} return avoided, minus ${rupees(move2PerParcel().handling)} handling and a ${rupees(i.m2BuyerDiscount)} buyer discount. The seller is paid a normal settlement because it is a new sale.`, surface: Resale, link: '#/resale', secs: 11 },
   { title: 'Impact', caption: `Sequenced, the two moves net ${lakh(lo.net)} to ${lakh(hi.net)} per lakh orders, which is ${pct(lo.shareOfDrag)} to ${pct(hi.shareOfDrag)} of the drag. Illustrative RTO goes from ${pctTrim(b.rtoRate)} to ${pctTrim(lo.rtoRateAfter)}. Every slider is tagged with its source.`, surface: Impact, link: '#/impact', secs: 14 },
-  { title: 'Pilot', caption: `${i.pilotPincodesPerArm} treatment and ${i.pilotPincodesPerArm} matched control pincodes over ${i.pilotDays} days. The power calculator is candid: with realistic clustering this pilot detects a drop of about ${(pilotPower().mde * 100).toFixed(1)} points, not 3. More pincodes help; more weeks barely do.`, surface: Pilot, link: '#/pilot', secs: 11 },
+  { title: 'Pilot', caption: `The ${i.pilotPincodesTreated} highest-RTO pincodes against ${i.pilotPincodesControl} matched controls over ${i.pilotDays} days. Orders cluster by pincode, so at an ICC of ${i.pilotIcc} this pilot detects a drop of about ${(pp.mde * 100).toFixed(1)} points. A ${PILOT_REFERENCE_SHIFT * 100}-point drop would need about ${pp3} pincodes per arm. More pincodes help; more weeks barely do.`, surface: Pilot, link: '#/pilot', secs: 12 },
   { title: 'Verify it yourself', caption: 'The code, the tests that check every number above, and this replay are all public. Scan the code or open the repo.', surface: null, link: '#/', secs: 9 },
 ]
 
