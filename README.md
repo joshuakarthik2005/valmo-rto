@@ -20,7 +20,7 @@ An interactive prototype for **Meesho DICE Challenge S3 (Business Track): "Reduc
 | Hub | `#/hub` | Control tower: risk, nudge status, SLA timers, flagged attempt marks, resale shelf countdown. |
 | Resale | `#/resale` | Refused parcel, eligibility check, nearby buyer match, auto invoice, next-day local delivery, or standard RTO after 5 business days. |
 | Impact | `#/impact` | Live waterfall, sliders, assumptions drawer with source tags, sensitivity, RTO gauge, shareable URL. |
-| Pilot | `#/pilot` | 10 treatment + 10 matched control pincodes, a cluster-aware power calculator (minimum detectable effect, pincodes vs weeks), a 30-60-90 timeline, metric definitions and guardrails. |
+| Pilot | `#/pilot` | The 20 highest-RTO pincodes against 20 matched controls (the control size is an assumption), a cluster-aware power calculator (minimum detectable effect, pincodes needed for a 3-point shift, pincodes vs weeks), a 30-60-90 timeline, metric definitions and guardrails. |
 
 ## Single source of truth
 
