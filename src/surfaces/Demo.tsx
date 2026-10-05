@@ -55,8 +55,15 @@ export default function Demo() {
   const [playing, setPlaying] = useState(true)
   const [t, setT] = useState(0)
   const step = STEPS[n]
-  // Deep links (#/demo?step=N) typed or clicked while already on the demo
-  useEffect(() => { setN(start) }, [start])
+  // Deep links (#/demo?step=N) typed or clicked while already on the demo, including the same step again
+  useEffect(() => {
+    const onHash = () => {
+      const m = /[?&]step=(\d+)/.exec(window.location.hash)
+      if (m) setN(Math.min(STEPS.length - 1, Math.max(0, Number(m[1]) - 1)))
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
 
   useEffect(() => { setT(0); setParams('/demo', new URLSearchParams({ step: String(n + 1) })) }, [n])
   // Warm the next surface so Skip never shows a loading state
