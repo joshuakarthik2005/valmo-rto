@@ -2,6 +2,8 @@
 
 An interactive prototype for **Meesho DICE Challenge S3 (Business Track): "Reducing RTO: Getting More Orders Delivered"**.
 
+[![CI](https://github.com/joshuakarthik2005/valmo-rto/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/joshuakarthik2005/valmo-rto/actions/workflows/ci.yml)
+
 **Live:** https://valmo-jet.vercel.app · **60-second path:** [valmo-jet.vercel.app/#/demo](https://valmo-jet.vercel.app/#/demo) (guided, captioned, about 2 minutes end to end)
 
 > **Disclaimer.** This is a student team prototype and all data in it is simulated. It is not a Meesho or Valmo product, uses no official logo assets, and implies no integration with either company's systems. Customer, rider and seller names are fictional. Ceiling figures are illustrative, and the network-scale figure is an upper-bound illustration, not a forecast. Non-English message copy needs native-speaker review.
