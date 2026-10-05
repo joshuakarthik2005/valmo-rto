@@ -13,6 +13,7 @@ const PAGES: Record<string, ReturnType<typeof lazy>> = {
   '/pilot': lazy(() => import('./surfaces/Pilot')),
   '/demo': lazy(() => import('./surfaces/Demo')),
 }
+const OgCard = lazy(() => import('./surfaces/OgCard'))
 
 const TITLES: Record<string, string> = {
   '/': 'Home', '/customer': 'Customer', '/rider': 'Rider app', '/hub': 'Hub control tower',
@@ -26,6 +27,7 @@ export function App() {
     document.title = `${TITLES[path] ?? 'Not found'} · Route Cause (prototype)`
     window.scrollTo(0, 0)
   }, [path])
+  if (path === '/og') return <Suspense fallback={null}><OgCard /></Suspense>
   return (
     <MotionConfig reducedMotion="user">
       <Shell path={path} hideFooterCard={path === '/'}>
