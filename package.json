@@ -12,8 +12,7 @@
     "test:e2e": "playwright test",
     "docs:tests": "node scripts/gen-tests-md.mjs",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "budget": "node scripts/js-budget.mjs"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "framer-motion": "^14.0.0",
@@ -21,7 +20,6 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.5",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.63.0",

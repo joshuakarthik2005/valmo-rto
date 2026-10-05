@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { PageHeader, Callout, ScrollRegion } from '../components/ui'
+import { PageHeader, Callout } from '../components/ui'
 import { Phone } from '../components/Phone'
 import { RESALE_ITEM, BUYERS, HUB, DEMO_TODAY } from '../data/scenario'
 import { resaleChecks, move2PerParcel, resalePrice, addBusinessDays, rupees, defaultInputs, type ResaleItem } from '../lib/model'
@@ -78,7 +78,7 @@ export default function Resale() {
               {step === 2 && (blocked ? <Blocked /> : (
                 <>
                   <p className="mt-2 text-ink">People in the same pincode cluster who viewed or wishlisted this item.</p>
-                  <ScrollRegion label="Candidate buyers table" className="mt-3">
+                  <div className="mt-3 overflow-x-auto">
                     <table className="w-full min-w-[480px] text-left">
                       <caption className="sr-only">Candidate buyers</caption>
                       <thead className="text-sm text-ink-soft"><tr><th className="py-2 px-2">Buyer</th><th className="px-2">Distance</th><th className="px-2">Signal</th><th className="px-2">Device check</th></tr></thead>
@@ -93,7 +93,7 @@ export default function Resale() {
                         ))}
                       </tbody>
                     </table>
-                  </ScrollRegion>
+                  </div>
                   <p className="mt-3 text-ink-soft">The same-device rule stops a customer refusing a parcel and then rebuying it at the discount.</p>
                 </>
               ))}
