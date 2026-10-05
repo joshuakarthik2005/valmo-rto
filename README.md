@@ -7,7 +7,7 @@ An interactive prototype for **Meesho DICE Challenge S3 (Business Track): "Reduc
 - 90-second walkthrough: [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)
 - Test results: [docs/tests.md](docs/tests.md)
 - Design boards: [docs/design](docs/design)
-- The original v1 prototype is preserved at [`/legacy/`](legacy/index.html)
+- The archived v1 prototype is at [`/legacy/`](legacy/index.html). It's superseded and kept unchanged for history, and some of its figures were corrected in v2
 
 > **Disclaimer.** This is a student team prototype and all data in it is simulated. It is not a Meesho or Valmo product, uses no official logo assets, and implies no integration with either company's systems. Customer, rider and seller names are fictional. Ceiling figures are illustrative, and the network-scale figure is an upper-bound illustration, not a forecast. Non-English message copy needs native-speaker review.
 
