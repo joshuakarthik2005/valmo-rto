@@ -272,7 +272,7 @@ test('verify card: one phone QR on large screens, wrapping repo link, four butto
 })
 
 test('layout: every surface link visible and no sideways page scroll on any route', async ({ page }) => {
-  for (const r of ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture']) {
+  for (const r of ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture', '/risk']) {
     await page.goto(`/#${r}`)
     await expect(page.locator('h1').first()).toBeVisible()
     const m = await page.evaluate(() => {
@@ -292,7 +292,7 @@ test('hub: orders show risk, nudge and timer without sideways scrolling', async 
   const view = page.getByTestId(narrow ? 'orders-cards' : 'orders-table')
   await expect(view).toBeVisible()
   await expect(page.getByTestId(narrow ? 'orders-table' : 'orders-cards')).toBeHidden()
-  for (const t of ['MSH-48702', 'High · 25.9%', 'Hub to call', 'Not dispatching']) await expect(view).toContainText(t)
+  for (const t of ['MSH-48702', '≈26% · Above average', 'Hub to call', 'Not dispatching']) await expect(view).toContainText(t)
   const fits = await view.evaluate((el) => {
     const box = el.getBoundingClientRect()
     const scroller = el.matches('[data-testid="orders-table"]') ? el : null
@@ -315,4 +315,28 @@ test('architecture: pipeline, events, data needs, build vs integrate, failure mo
   await expect(page.getByTestId('failure-modes').locator('li')).toHaveCount(7)
   await expect(page.getByText('No integration exists today', { exact: false })).toBeVisible()
   await shot(page, '11-architecture', info.project.name)
+})
+
+test('risk: explainable score, rounded, fitted to two marginals, first-time address unscored', async ({ page }) => {
+  await page.goto('/#/hub')
+  await page.getByRole('link', { name: 'Why this score?' }).click()
+  await expect(page).toHaveURL(/#\/risk/)
+  await expect(page.getByTestId('risk-disclaimer')).toContainText('fitted to two marginal rates only')
+  await expect(page.getByTestId('risk-disclaimer')).toContainText('Illustrative')
+  const w = page.getByTestId('weights')
+  for (const t of ['1.2×', '0.3×', '0.9×', '1.0×', '1.3×', 'flag only']) await expect(w).toContainText(t)
+  await expect(w).not.toContainText(/prior refusal/i)
+  await expect(page.getByTestId('risk-value')).toHaveText('≈26%')
+  await page.getByRole('checkbox', { name: 'First-time address' }).check()
+  await expect(page.getByTestId('risk-value')).toHaveText('≈26%')
+  await expect(page.getByTestId('risk-flag')).toHaveText('first-time address (not scored)')
+  await page.getByRole('radio', { name: 'Prepaid' }).click()
+  await page.getByRole('radio', { name: 'Near' }).click()
+  await expect(page.getByTestId('risk-value')).toHaveText('≈4%')
+  await expect(page.getByTestId('risk-why')).toContainText('Below average')
+  // No false precision anywhere on hub or rider
+  for (const r of ['/hub', '/rider']) {
+    await page.goto(`/#${r}`)
+    await expect(page.locator('main')).not.toContainText(/\d+\.\d+%/)
+  }
 })

@@ -86,6 +86,7 @@ jobs:
           - { route: '/pilot', slug: pilot }
           - { route: '/demo', slug: demo }
           - { route: '/architecture', slug: architecture }
+          - { route: '/risk', slug: risk }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

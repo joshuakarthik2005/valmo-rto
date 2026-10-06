@@ -3,7 +3,7 @@ import { baseline, combined, move1, move2, lakh, pct, pctTrim, count } from '../
 
 // Fresh context per test, no auth: every route loads with zero console errors,
 // and the impact numbers on screen equal the model's output.
-const ROUTES = ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture']
+const ROUTES = ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture', '/risk']
 
 for (const r of ROUTES) {
   test(`route #${r} loads with no console errors`, async ({ page }) => {

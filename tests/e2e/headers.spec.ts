@@ -2,7 +2,7 @@ import { test, expect } from './fixtures'
 
 // Security headers come from vercel.json. Vercel applies them on deployments; locally and in CI,
 // scripts/serve.mjs applies the same file, so these tests run everywhere.
-const ROUTES = ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo']
+const ROUTES = ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture', '/risk']
 
 function authHeaders(): Record<string, string> {
   const t = process.env.VERCEL_OIDC_TOKEN

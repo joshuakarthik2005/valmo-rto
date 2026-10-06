@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   baseline, distanceGradient, rootCauses, move1, upiSwitch, replyValue, move2PerParcel,
   move2, sensitivity, combined, networkIllustration, waterfall, validateUnavailable,
-  riderPremium, resaleChecks, pilotSizing, pilotPower, normInv, twoPropN, designEffect, mde, weeksNeeded, pincodesNeeded, addBusinessDays, lakh, pctTrim, defaultInputs,
+  riderPremium, resaleChecks, pilotSizing, pilotPower, orderRisk, riskFactors, approxPct, normInv, twoPropN, designEffect, mde, weeksNeeded, pincodesNeeded, addBusinessDays, lakh, pctTrim, defaultInputs,
 } from './model'
 import { A, ROOT_CAUSES } from '../data/assumptions'
 
@@ -309,5 +309,44 @@ describe('Placeholder rider attempt fee', () => {
     }
     expect(networkIllustration(bumped)).toEqual(networkIllustration(base))
     expect(baseline(bumped)).toEqual(baseline(base))
+  })
+})
+
+describe('Explainable risk score (A5): payment mode × distance tier, fitted to the case marginals', () => {
+  const f = riskFactors()
+  const est = (cod: boolean, band: 'near' | 'moderate' | 'far') => orderRisk({ cod, band, firstAddress: false }).est
+  it('factors are each marginal rate divided by the blended 17%', () => {
+    expect(f.pay.cod).toBeCloseTo(0.2 / 0.17, 12)
+    expect(f.pay.prepaid).toBeCloseTo(0.05 / 0.17, 12)
+    expect(f.band.near).toBeCloseTo(0.15 / 0.17, 12)
+    expect(f.band.moderate).toBeCloseTo(1, 12)
+    expect(f.band.far).toBeCloseTo(0.22 / 0.17, 12)
+  })
+  it('averaging over the case 80/20 payment mix reproduces each distance-tier rate exactly (15% / 17% / 22%)', () => {
+    for (const [band, rate] of [['near', 0.15], ['moderate', 0.17], ['far', 0.22]] as const) {
+      expect(0.8 * est(true, band) + 0.2 * est(false, band)).toBeCloseTo(rate, 12)
+    }
+  })
+  it('averaging over a distance mix whose mean is 17% reproduces each payment rate exactly (20% / 5%)', () => {
+    // Any mix with 0.15a + 0.17b + 0.22c = 0.17 works; this one is a=0.40, b=0.44, c=0.16 (test-only, not used in the app)
+    const mix = { near: 0.4, moderate: 0.44, far: 0.16 }
+    expect(0.15 * mix.near + 0.17 * mix.moderate + 0.22 * mix.far).toBeCloseTo(0.17, 12)
+    for (const [cod, rate] of [[true, 0.2], [false, 0.05]] as const) {
+      const avg = (Object.keys(mix) as (keyof typeof mix)[]).reduce((s, b) => s + mix[b] * est(cod, b), 0)
+      expect(avg).toBeCloseTo(rate, 12)
+    }
+  })
+  it('first-time address is a flag only: it never changes the score', () => {
+    const a = orderRisk({ cod: true, band: 'far', firstAddress: false })
+    const b = orderRisk({ cod: true, band: 'far', firstAddress: true })
+    expect(b.est).toBe(a.est)
+    expect(b.flags).toEqual(['first-time address (not scored)'])
+  })
+  it('displays rounded whole percents, not false precision', () => {
+    expect(approxPct(est(true, 'far'))).toBe('≈26%')
+    expect(approxPct(est(true, 'moderate'))).toBe('≈20%')
+    expect(approxPct(est(false, 'near'))).toBe('≈4%')
+    expect(orderRisk({ cod: true, band: 'near', firstAddress: false }).tier).toBe('Above average')
+    expect(orderRisk({ cod: false, band: 'far', firstAddress: false }).tier).toBe('Below average')
   })
 })
