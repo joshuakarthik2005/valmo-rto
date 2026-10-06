@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Phone } from '../components/Phone'
 import { PageHeader, Callout } from '../components/ui'
 import { ORDERS } from '../data/scenario'
-import { orderRisk, validateUnavailable, riderPremium, rupees, pctTrim, defaultInputs } from '../lib/model'
+import { orderRisk, approxPct, validateUnavailable, riderPremium, rupees, defaultInputs } from '../lib/model'
 
 const inputs = defaultInputs()
 const MANIFEST = ORDERS.filter((o) => o.nudge !== 'cancelled' && o.nudge !== 'held').slice(0, 6)
@@ -14,7 +14,7 @@ type Outcome =
   | { kind: 'delivered'; premium: number }
   | { kind: 'unavailable'; verdict: 'rejected' | 'verified' | 'review'; fee: number; reason: string; followUp: boolean }
 
-const TIER_STYLE = { High: 'bg-coral-100 text-plum', Medium: 'bg-cream-200 text-ink', Low: 'bg-leaf-100 text-leaf-700' }
+const TIER_STYLE = { 'Above average': 'bg-coral-100 text-plum', Average: 'bg-cream-200 text-ink', 'Below average': 'bg-leaf-100 text-leaf-700' }
 
 function clock(min: number) {
   const h = Math.floor(min / 60), m = min % 60
@@ -89,7 +89,7 @@ export default function Rider() {
                       className={`w-full text-left flex flex-wrap items-center gap-x-3 gap-y-1 py-3 px-2 rounded-xl ${sel === m.id ? 'bg-plum-100' : 'hover:bg-cream'}`}>
                       <span className="font-semibold text-ink w-28">{m.id}</span>
                       <span className="text-ink flex-1 min-w-[8rem]">{m.item} · {m.area}</span>
-                      <span className={`chip ${TIER_STYLE[mr.tier]}`}>{mr.tier} risk</span>
+                      <span className={`chip ${TIER_STYLE[mr.tier]}`}>{approxPct(mr.est)} risk</span>
                       {out && <span className={`chip ${out.kind === 'delivered' ? 'bg-leaf-100 text-leaf-700' : out.verdict === 'verified' ? 'bg-plum-100 text-plum' : 'bg-coral-100 text-plum'}`}>
                         {out.kind === 'delivered' ? 'Delivered' : out.verdict === 'verified' ? 'Verified attempt' : out.verdict === 'rejected' ? 'Mark rejected' : 'Sent to review'}
                       </span>}
@@ -130,8 +130,9 @@ export default function Rider() {
                 <p className="font-semibold text-ink">{o.name} · {o.area} {o.pin}</p>
                 <p className="text-ink-soft text-sm">{o.item} · {o.cod ? `${rupees(o.price)} COD` : 'Prepaid'}</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span className={`chip text-xs ${TIER_STYLE[r.tier]}`}>{r.tier} risk · est. {pctTrim(Math.round(r.est * 1000) / 1000)}</span>
+                  <span className={`chip text-xs ${TIER_STYLE[r.tier]}`}>{approxPct(r.est)} · {r.tier}</span>
                   {r.reasons.map((x) => <span key={x} className="chip text-xs bg-cream-200 text-ink">{x}</span>)}
+                  {r.flags.map((x) => <span key={x} className="chip text-xs bg-white text-ink border border-plum/20">{x}</span>)}
                 </div>
               </div>
 

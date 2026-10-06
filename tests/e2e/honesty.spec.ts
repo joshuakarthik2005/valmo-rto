@@ -5,6 +5,7 @@ const BANNED = /\b(validated|proven|guarantee[ds]?|AI-powered|machine learning)\
 // `reveal` opens every state of the page (e.g. each scenario) so all of its text is checked, not just the first view
 const PAGES: { route: string; mustShow: RegExp; reveal?: string }[] = [
   { route: '/scenarios', mustShow: /simulated/i, reveal: 'nav[aria-label="Failure cases"] button' },
+  { route: '/risk', mustShow: /illustrative/i },
   { route: '/architecture', mustShow: /proposal/i },
 ]
 

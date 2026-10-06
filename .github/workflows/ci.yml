@@ -87,6 +87,7 @@ jobs:
           - { route: '/demo', slug: demo }
           - { route: '/architecture', slug: architecture }
           - { route: '/scenarios', slug: scenarios }
+          - { route: '/risk', slug: risk }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
