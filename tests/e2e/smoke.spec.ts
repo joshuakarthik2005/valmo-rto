@@ -368,3 +368,19 @@ test('risk: explainable score, rounded, fitted to two marginals, first-time addr
     await expect(page.locator('main')).not.toContainText(/\d+\.\d+%/)
   }
 })
+
+test('impact: tornado chart, one-at-a-time assumption ranges, base equals the headline', async ({ page }) => {
+  await page.goto('/#/impact')
+  const t = page.getByTestId('tornado')
+  await expect(page.getByText('Assumption ranges, not confidence intervals.')).toBeVisible()
+  await expect(t.locator('li')).toHaveCount(7)
+  await expect(page.getByText(/current conservative net saving, ₹5\.4L/)).toBeVisible()
+  await expect(t).toContainText('No effect in the conservative case')
+  await page.getByRole('radio', { name: 'Ceiling (illustrative)' }).click()
+  await expect(page.getByText(/current ceiling net saving, ₹11\.4L/)).toBeVisible()
+  await expect(t.locator('li', { hasText: 'Intent-to-action haircut' })).toContainText('No effect in the ceiling case')
+  // Bars follow the sliders above
+  await page.getByRole('radio', { name: 'Conservative' }).click()
+  await page.locator('#s-m2Match').fill('0.35')
+  await expect(page.getByText(/current conservative net saving, ₹6\.4L/)).toBeVisible()
+})

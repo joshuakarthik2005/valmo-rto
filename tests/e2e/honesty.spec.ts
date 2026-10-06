@@ -7,6 +7,7 @@ const PAGES: { route: string; mustShow: RegExp; reveal?: string }[] = [
   { route: '/scenarios', mustShow: /simulated/i, reveal: 'nav[aria-label="Failure cases"] button' },
   { route: '/risk', mustShow: /illustrative/i },
   { route: '/architecture', mustShow: /proposal/i },
+  { route: '/impact', mustShow: /assumption ranges, not confidence intervals/i },
 ]
 
 for (const p of PAGES) {

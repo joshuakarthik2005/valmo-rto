@@ -123,3 +123,11 @@ export const PILOT_CALC_RANGES = {
 export const PILOT_ICC_TABLE = [0, 0.01, 0.02, 0.05]
 /** Reference shift for "what would a 3-point drop need": a question judges ask, not a forecast. */
 export const PILOT_REFERENCE_SHIFT = 0.03
+
+/**
+ * Inputs shown in the one-at-a-time sensitivity (tornado) chart on #/impact: every slider that feeds the
+ * combined net saving. Each bar swings one input across its own slider range (the `range` on that assumption,
+ * already source-tagged above) with everything else at its default. Assumption ranges, not confidence intervals.
+ * The UPI discount is left out because the UPI switch is not part of the combined total.
+ */
+export const TORNADO_INPUTS: AssumptionId[] = ['m1Definitely', 'm1Maybe', 'm1Haircut', 'm1MessagingCost', 'm2Match', 'm2BuyerDiscount', 'codShare']

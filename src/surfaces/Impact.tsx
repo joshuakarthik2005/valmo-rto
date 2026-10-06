@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { PageHeader, Segmented, SourcePill, Callout } from '../components/ui'
 import { A, ROOT_CAUSE_SAMPLE, ROOT_CAUSE_SOURCE, OPEN_ITEMS, type AssumptionId } from '../data/assumptions'
 import {
-  baseline, combined, waterfall, rootCauses, sensitivity, upiSwitch, networkIllustration, distanceGradient,
+  baseline, combined, waterfall, rootCauses, sensitivity, tornado, upiSwitch, networkIllustration, distanceGradient,
   defaultInputs, lakh, rupees, pct, pctTrim, count, type Case, type Move2Mode, type Inputs,
 } from '../lib/model'
 import { useRoute, setParams } from '../lib/router'
@@ -154,6 +154,8 @@ export default function Impact() {
         </div>
       </section>
 
+      <Tornado c={c} inputs={inputs} />
+
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         <section className="card" aria-labelledby="rc-h">
           <h2 id="rc-h" className="text-xl font-bold">Why parcels come back</h2>
@@ -237,6 +239,45 @@ export default function Impact() {
 
       <AssumptionsDrawer open={drawer} onClose={() => setDrawer(false)} inputs={inputs} />
     </div>
+  )
+}
+
+function Tornado({ c, inputs }: { c: Case; inputs: Inputs }) {
+  const bars = tornado(c, inputs)
+  const base = bars[0].base
+  const lo = Math.min(...bars.map((b) => b.low), base)
+  const hi = Math.max(...bars.map((b) => b.high), base)
+  const x = (v: number) => ((v - lo) / (hi - lo || 1)) * 100
+  return (
+    <section className="card mb-6" aria-labelledby="tor-h">
+      <h2 id="tor-h" className="text-xl font-bold">Which assumption matters most</h2>
+      <p className="text-ink-soft">
+        One at a time, each assumption is moved across its slider range while everything else stays as set above. Each bar is the
+        {' '}{c} net saving at the two ends. <strong className="text-ink">Assumption ranges, not confidence intervals.</strong>
+      </p>
+      <ul className="mt-4 space-y-3" data-testid="tornado">
+        {bars.map((b) => (
+          <li key={b.id} className="grid grid-cols-1 sm:grid-cols-[minmax(0,15rem)_1fr] gap-x-4 gap-y-1 items-center">
+            <div>
+              <p className="text-[15px] leading-tight text-ink">{b.label}</p>
+              <p className="text-sm text-ink-soft">{fmt(b.id, b.min)} to {fmt(b.id, b.max)} · <SourcePill tag={b.source} /></p>
+            </div>
+            {b.swing === 0 ? (
+              <p className="text-sm text-ink-soft">No effect in the {c} case</p>
+            ) : (
+              <div>
+                <div className="relative h-6 rounded bg-cream-200" aria-hidden>
+                  <span className="absolute inset-y-0 rounded bg-plum" style={{ left: `${x(b.low)}%`, width: `${Math.max(0.8, x(b.high) - x(b.low))}%` }} />
+                  <span className="absolute -inset-y-1 w-0.5 bg-magenta" style={{ left: `${x(base)}%` }} />
+                </div>
+                <p className="num mt-0.5 text-sm text-ink">{lakh(b.low)} to {lakh(b.high)}</p>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-sm text-ink-soft">Magenta line: the current {c} net saving, {lakh(base)}. The UPI discount is left out because the UPI switch is not in the combined total.</p>
+    </section>
   )
 }
 

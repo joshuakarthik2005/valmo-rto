@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   baseline, distanceGradient, rootCauses, move1, upiSwitch, replyValue, move2PerParcel,
   move2, sensitivity, combined, networkIllustration, waterfall, validateUnavailable,
-  riderPremium, resaleChecks, pilotSizing, pilotPower, scenarioEffects, messagingCostPerOrder, orderRisk, riskFactors, approxPct, normInv, twoPropN, designEffect, mde, weeksNeeded, pincodesNeeded, addBusinessDays, lakh, pctTrim, defaultInputs,
+  riderPremium, resaleChecks, pilotSizing, pilotPower, tornado, scenarioEffects, messagingCostPerOrder, orderRisk, riskFactors, approxPct, normInv, twoPropN, designEffect, mde, weeksNeeded, pincodesNeeded, addBusinessDays, lakh, pctTrim, defaultInputs,
 } from './model'
 import { A, ROOT_CAUSES } from '../data/assumptions'
 
@@ -377,5 +377,39 @@ describe('Explainable risk score (A5): payment mode × distance tier, fitted to 
     expect(approxPct(est(false, 'near'))).toBe('≈4%')
     expect(orderRisk({ cod: true, band: 'near', firstAddress: false }).tier).toBe('Above average')
     expect(orderRisk({ cod: false, band: 'far', firstAddress: false }).tier).toBe('Below average')
+  })
+})
+
+describe('One-at-a-time sensitivity (tornado)', () => {
+  for (const c of ['conservative', 'ceiling'] as const) {
+    const bars = tornado(c)
+    it(`${c}: the base case equals the headline net saving`, () => {
+      expect(lakh(bars[0].base)).toBe(c === 'conservative' ? '₹5.4L' : '₹11.4L')
+      for (const b of bars) expect(b.base).toBeCloseTo(combined(c).net, 6)
+    })
+    it(`${c}: every bar spans the base case and uses its slider range`, () => {
+      for (const b of bars) {
+        expect(b.min).toBe(A[b.id].range!.min)
+        expect(b.max).toBe(A[b.id].range!.max)
+        expect(b.low).toBeLessThanOrEqual(b.base + 1e-6)
+        expect(b.high).toBeGreaterThanOrEqual(b.base - 1e-6)
+      }
+    })
+    it(`${c}: each bar is monotone across its range`, () => {
+      for (const b of bars) {
+        const r = A[b.id].range!
+        const pts = Array.from({ length: 11 }, (_, k) => combined(c, 'sequenced', { ...defaultInputs(), [b.id]: r.min + ((r.max - r.min) * k) / 10 }).net)
+        const diffs = pts.slice(1).map((v, k) => v - pts[k])
+        const up = diffs.every((d) => d >= -1e-6), down = diffs.every((d) => d <= 1e-6)
+        expect(up || down, `${b.id} is not monotone`).toBe(true)
+      }
+    })
+    it(`${c}: sorted by swing, largest first`, () => {
+      for (let k = 1; k < bars.length; k++) expect(bars[k - 1].swing).toBeGreaterThanOrEqual(bars[k].swing)
+    })
+  }
+  it('inputs that do not enter a case have zero swing (maybe-replies only count in the ceiling; haircut only in conservative)', () => {
+    expect(tornado('conservative').find((b) => b.id === 'm1Maybe')!.swing).toBe(0)
+    expect(tornado('ceiling').find((b) => b.id === 'm1Haircut')!.swing).toBe(0)
   })
 })
