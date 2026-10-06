@@ -34,7 +34,7 @@ const base = closure(entry)
 // framer-motion's MotionBoundary loads with every surface route (see App.tsx)
 const motion = files.filter((f) => basename(f).startsWith('MotionBoundary-'))
 
-const routes = { '/': [], '/customer': ['Customer'], '/rider': ['Rider'], '/hub': ['Hub'], '/resale': ['Resale'], '/impact': ['Impact'], '/pilot': ['Pilot'], '/demo': ['Demo'], '/architecture': ['Architecture'], '/risk': ['Risk'] }
+const routes = { '/': [], '/customer': ['Customer'], '/rider': ['Rider'], '/hub': ['Hub'], '/resale': ['Resale'], '/impact': ['Impact'], '/pilot': ['Pilot'], '/demo': ['Demo'], '/architecture': ['Architecture'], '/risk': ['Risk'], '/scenarios': ['Scenarios'] }
 let failed = false
 const rows = []
 for (const [route, prefixes] of Object.entries(routes)) {

@@ -59,7 +59,7 @@ export function Shell({ path, children, hideFooterCard = false }: { path: string
       <footer className="mx-auto w-full max-w-6xl px-4 pb-8 space-y-4">
         {!hideFooterCard && <VerifyCard compact />}
         <p className="text-sm text-ink-soft">
-          <a href="#/architecture" className="underline font-semibold text-plum">Architecture</a> · <a href="#/demo" className="underline font-semibold text-plum">Guided demo</a>
+          <a href="#/architecture" className="underline font-semibold text-plum">Architecture</a> · <a href="#/scenarios" className="underline font-semibold text-plum">Failure cases</a> · <a href="#/demo" className="underline font-semibold text-plum">Guided demo</a>
         </p>
         <p className="text-sm text-ink-soft">
           Team prototype for Meesho DICE Challenge S3 (Business Track). All orders, people and figures on screen are simulated. Not an official Meesho or Valmo product; no integration is implied.

@@ -2,7 +2,7 @@ import { test, expect } from './fixtures'
 
 // Security headers come from vercel.json. Vercel applies them on deployments; locally and in CI,
 // scripts/serve.mjs applies the same file, so these tests run everywhere.
-const ROUTES = ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture', '/risk']
+const ROUTES = ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture', '/risk', '/scenarios']
 
 function authHeaders(): Record<string, string> {
   const t = process.env.VERCEL_OIDC_TOKEN
@@ -30,13 +30,18 @@ test.describe('security headers', () => {
   })
 })
 
-test('no CSP violations on any route', async ({ page }) => {  await page.addInitScript(() => {
+test('no CSP violations on any route', async ({ page }) => {
+  await page.addInitScript(() => {
     ;(window as unknown as { __csp: string[] }).__csp = []
     document.addEventListener('securitypolicyviolation', (e) => {
       ;(window as unknown as { __csp: string[] }).__csp.push(`${e.disposition} ${e.effectiveDirective} ${e.blockedURI}`)
     })
   })
-  await expect.poll(async () => (await page.request.get('/')).headers()['content-security-policy']).toBeTruthy()
+  // The app's own CSP must be live. On protected previews the request needs the auth header; without it
+  // Vercel redirects to its login page, whose unrelated CSP once made this check pass or time out by chance.
+  const res = await page.request.get('/', { headers: authHeaders(), maxRedirects: 0 })
+  expect(res.status()).toBe(200)
+  expect(res.headers()['content-security-policy']).toContain("script-src 'self'")
   const found: string[] = []
   for (const r of ROUTES) {
     await page.goto(`/#${r}`)

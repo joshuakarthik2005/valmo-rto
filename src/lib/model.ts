@@ -372,6 +372,11 @@ export function rupees(n: number) {
   return `${sign}₹${Math.round(Math.abs(n)).toLocaleString('en-IN')}`
 }
 
+/** Rupees with paise only when the amount is under ₹10 and not whole (e.g. the ₹1.20 per-order messaging spend). */
+export function rupeesFine(n: number) {
+  return Math.abs(n) < 10 && n % 1 !== 0 ? `${n < 0 ? '−' : ''}₹${Math.abs(n).toFixed(2)}` : rupees(n)
+}
+
 export function count(n: number) {
   return Math.round(n).toLocaleString('en-IN')
 }
@@ -442,4 +447,31 @@ export function resalePrice(price: number, i: Inputs = defaultInputs()) {
 /** Messaging cost per order, used as the cost-per-order guardrail. */
 export function messagingCostPerOrder(i: Inputs = defaultInputs()) {
   return i.m1MessagingCost / i.ordersBase
+}
+
+// ---------- Failure-case scenarios (A4) ----------
+
+/**
+ * Per-order ₹ effect of each failure case, compared with today's process for that order.
+ * Built only from existing assumptions; no new numbers.
+ * kind: 'counted' = exact effect; 'upTo' = per-case ceiling (never aggregated); 'cost' = money spent with no saving.
+ */
+export function scenarioEffects(i: Inputs = defaultInputs()) {
+  const ceiling = i.forwardCost + i.reverseCost
+  return {
+    // Ladder runs to the end with no reply: hub calls, order ships as today. Messaging spend, no saving counted.
+    noReply: { amount: -messagingCostPerOrder(i), kind: 'cost' as const },
+    // IVR fails: treated exactly like "no reply" (hub call, ships as today).
+    ivrFail: { amount: -messagingCostPerOrder(i), kind: 'cost' as const },
+    // Reply arrives after a cancellation: logged, not applied. The cancellation already avoided both legs.
+    lateReply: { amount: ceiling, kind: 'upTo' as const },
+    // Rider offline: no logged call, so the mark goes to hub review instead of auto-reject. No saving; fee protected pending review.
+    riderOffline: { amount: 0, kind: 'counted' as const, riderFeeProtected: i.riderAttemptFee },
+    // Same-device buyer blocked, next nearby buyer matched: the normal resale saving.
+    sameDeviceBlocked: { amount: move2PerParcel(i).net, kind: 'counted' as const },
+    // Resale buyer cancels after re-bagging, no rematch in the window: standard RTO, re-bagging already spent.
+    buyerCancels: { amount: -i.m2Rebag, kind: 'counted' as const },
+    // No buyer within the window: standard RTO, same cost as today.
+    timeout: { amount: 0, kind: 'counted' as const },
+  }
 }

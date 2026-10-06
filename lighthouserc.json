@@ -14,6 +14,7 @@
         "http://localhost:4173/#/pilot",
         "http://localhost:4173/#/demo",
         "http://localhost:4173/#/architecture",
+        "http://localhost:4173/#/scenarios",
         "http://localhost:4173/#/risk"
       ],
       "settings": { "formFactor": "mobile", "chromeFlags": "--headless=new --no-sandbox" }

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   baseline, distanceGradient, rootCauses, move1, upiSwitch, replyValue, move2PerParcel,
   move2, sensitivity, combined, networkIllustration, waterfall, validateUnavailable,
-  riderPremium, resaleChecks, pilotSizing, pilotPower, orderRisk, riskFactors, approxPct, normInv, twoPropN, designEffect, mde, weeksNeeded, pincodesNeeded, addBusinessDays, lakh, pctTrim, defaultInputs,
+  riderPremium, resaleChecks, pilotSizing, pilotPower, scenarioEffects, messagingCostPerOrder, orderRisk, riskFactors, approxPct, normInv, twoPropN, designEffect, mde, weeksNeeded, pincodesNeeded, addBusinessDays, lakh, pctTrim, defaultInputs,
 } from './model'
 import { A, ROOT_CAUSES } from '../data/assumptions'
 
@@ -309,6 +309,35 @@ describe('Placeholder rider attempt fee', () => {
     }
     expect(networkIllustration(bumped)).toEqual(networkIllustration(base))
     expect(baseline(bumped)).toEqual(baseline(base))
+  })
+})
+
+describe('Failure-case scenarios (A4): every ₹ effect from existing assumptions', () => {
+  const e = scenarioEffects()
+  it('no reply and IVR failure ship as today and cost only the messaging spend (₹1.20 per order)', () => {
+    expect(e.noReply.amount).toBeCloseTo(-messagingCostPerOrder(), 10)
+    expect(e.noReply.amount).toBeCloseTo(-1.2, 10)
+    expect(e.ivrFail).toEqual(e.noReply)
+  })
+  it('a reply after cancellation changes nothing: the cancellation already avoided up to ₹170', () => {
+    expect(e.lateReply).toEqual({ amount: 170, kind: 'upTo' })
+  })
+  it('rider offline: no saving; the placeholder attempt fee is protected pending review', () => {
+    expect(e.riderOffline.amount).toBe(0)
+    expect(e.riderOffline.riderFeeProtected).toBe(A.riderAttemptFee.value)
+  })
+  it('same-device buyer blocked, next buyer matched: the normal ₹74 resale saving', () => {
+    expect(e.sameDeviceBlocked.amount).toBe(74)
+  })
+  it('resale buyer cancels: standard RTO with ₹5 re-bagging already spent', () => {
+    expect(e.buyerCancels.amount).toBe(-5)
+  })
+  it('5-day timeout: standard RTO, same cost as today', () => {
+    expect(e.timeout.amount).toBe(0)
+  })
+  it('the placeholder rider fee does not change any scenario saving', () => {
+    const bumped = scenarioEffects({ ...defaultInputs(), riderAttemptFee: 999 })
+    for (const k of Object.keys(e) as (keyof typeof e)[]) expect(bumped[k].amount).toBe(e[k].amount)
   })
 })
 

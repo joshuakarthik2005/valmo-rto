@@ -4,7 +4,7 @@ import { test, expect } from './fixtures'
 
 // axe-core on every route and on the main interactive states, against WCAG 2.1 A and AA rules.
 // Serious and critical violations fail the test; moderate and minor ones are attached to the report.
-const ROUTES = ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture', '/risk']
+const ROUTES = ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture', '/risk', '/scenarios']
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 
 async function audit(page: Page, label: string) {
