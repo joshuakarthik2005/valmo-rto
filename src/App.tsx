@@ -37,7 +37,8 @@ export function App() {
   if (path === '/og') return <Suspense fallback={null}><OgCard /></Suspense>
   return (
     <>
-      <Shell path={path} hideFooterCard={path === '/'}>
+      {/* The demo's last step shows the Verify card itself, so the footer copy is hidden there (one landmark, not two) */}
+      <Shell path={path} hideFooterCard={path === '/' || path === '/demo'}>
         {path === '/' ? (
           <Landing />
         ) : Page ? (

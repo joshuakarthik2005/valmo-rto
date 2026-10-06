@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { PageHeader, Stat } from '../components/ui'
+import { PageHeader, Stat, ScrollRegion } from '../components/ui'
 import { ORDERS, FLAGGED, SHELF, HUB, DEMO_TODAY, type Nudge } from '../data/scenario'
 import { orderRisk, addBusinessDays, businessDaysBetween, rupees, pctTrim, defaultInputs } from '../lib/model'
 
@@ -79,7 +79,7 @@ export default function Hub() {
             )
           })}
         </ul>
-        <div className="mt-3 hidden md:block overflow-x-auto" data-testid="orders-table">
+        <ScrollRegion label="Orders before dispatch table" className="mt-3 hidden md:block" testId="orders-table">
           <table className="w-full min-w-[680px] text-left text-[15px]">
             <caption className="sr-only">Orders with RTO risk, nudge status and dispatch SLA</caption>
             <thead className="text-ink-soft text-sm">
@@ -104,7 +104,7 @@ export default function Hub() {
               })}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
         <p className="mt-3 text-ink-soft text-sm">Risk estimate = distance-band RTO rate adjusted for payment mode (illustrative). Timers run live in this demo.</p>
       </section>
 
