@@ -23,7 +23,7 @@ export const EVENTS: EventDef[] = [
   { name: 'reply.received', when: 'Customer answers', fields: 'order_id, reply (confirm | reschedule | cancel | not_mine | upi), new_slot?, received_at', confirm: false },
   { name: 'attempt.call_logged', when: 'Rider calls via the masked number', fields: 'order_id, rider_id, placed_at, answered (bool), duration_s', confirm: true },
   { name: 'attempt.marked', when: 'Rider marks an outcome', fields: 'order_id, rider_id, outcome (delivered | unavailable | refused), marked_at, otp_ok?', confirm: true },
-  { name: 'attempt.validated', when: 'Validation runs on a mark', fields: 'order_id, verdict (verified | rejected | review), reason', confirm: false },
+  { name: 'attempt.checked', when: 'Validation runs on a mark', fields: 'order_id, verdict (verified | rejected | review), reason', confirm: false },
   { name: 'rto.received_at_hub', when: 'Refused parcel back at hub', fields: 'order_id, hub_id, received_at, seal_intact, photo_ref', confirm: true },
   { name: 'resale.decided', when: 'Eligibility, match or timeout', fields: 'order_id, decision (listed | matched | reverted), new_order_id?, decided_at', confirm: false },
 ]
