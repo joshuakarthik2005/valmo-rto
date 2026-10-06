@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { PageHeader, Stat, ScrollRegion } from '../components/ui'
 import { ORDERS, FLAGGED, SHELF, HUB, DEMO_TODAY, type Nudge } from '../data/scenario'
-import { orderRisk, addBusinessDays, businessDaysBetween, rupees, pctTrim, defaultInputs } from '../lib/model'
+import { orderRisk, approxPct, addBusinessDays, businessDaysBetween, rupees, defaultInputs } from '../lib/model'
 
 const inputs = defaultInputs()
 
@@ -15,7 +15,7 @@ const NUDGE: Record<Nudge, { label: string; cls: string }> = {
   cancelled: { label: 'Cancelled pre-dispatch', cls: 'bg-cream-200 text-ink' },
   held: { label: 'Held: not ordered', cls: 'bg-coral-100 text-plum' },
 }
-const TIER = { High: 'bg-coral-100 text-plum', Medium: 'bg-cream-200 text-ink', Low: 'bg-leaf-100 text-leaf-700' }
+const TIER = { 'Above average': 'bg-coral-100 text-plum', Average: 'bg-cream-200 text-ink', 'Below average': 'bg-leaf-100 text-leaf-700' }
 const VERDICT = {
   rejected: { label: 'Auto-rejected', cls: 'bg-coral-100 text-plum' },
   review: { label: 'Needs review', cls: 'bg-magenta-100 text-magenta-600' },
@@ -38,7 +38,7 @@ export default function Hub() {
 
   const cod = ORDERS.filter((o) => o.cod)
   const answered = cod.filter((o) => ['confirmed', 'rescheduled', 'cancelled', 'held'].includes(o.nudge)).length
-  const high = ORDERS.filter((o) => orderRisk(o).tier === 'High').length
+  const high = ORDERS.filter((o) => orderRisk(o).tier === 'Above average').length
 
   return (
     <div>
@@ -50,7 +50,7 @@ export default function Hub() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <Stat label="Orders on today's board" value={ORDERS.length} />
-        <Stat label="High-risk orders" value={high} tone="magenta" />
+        <Stat label="Above-average risk" value={high} tone="magenta" />
         <Stat label="COD nudges answered" value={`${answered} of ${cod.length}`} tone="leaf" />
         <Stat label="Flagged attempt marks" value={FLAGGED.filter((f) => f.verdict !== 'verified' && !decided[f.id]).length} />
       </div>
@@ -72,7 +72,7 @@ export default function Hub() {
                 </div>
                 <p className="text-sm text-ink-soft">{o.item} · {o.area} {o.pin} · {o.band} · {o.cod ? `COD ${rupees(o.price)}` : 'Prepaid'}</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span className={`chip ${TIER[r.tier]}`}>{r.tier} · {pctTrim(Math.round(r.est * 1000) / 1000)}</span>
+                  <span className={`chip ${TIER[r.tier]}`}>{approxPct(r.est)} · {r.tier}</span>
                   <span className={`chip ${NUDGE[o.nudge].cls}`}>{NUDGE[o.nudge].label}</span>
                 </div>
               </li>
@@ -94,7 +94,7 @@ export default function Hub() {
                     <td className="py-2.5 px-3 font-semibold">{o.id}<div className="text-sm font-normal text-ink-soft">{o.item}</div></td>
                     <td className="px-3">{o.area}<div className="text-sm text-ink-soft">{o.pin} · {o.band}</div></td>
                     <td className="px-3">{o.cod ? `COD ${rupees(o.price)}` : 'Prepaid'}</td>
-                    <td className="px-3"><span className={`chip ${TIER[r.tier]}`}>{r.tier} · {pctTrim(Math.round(r.est * 1000) / 1000)}</span></td>
+                    <td className="px-3"><span className={`chip ${TIER[r.tier]}`}>{approxPct(r.est)} · {r.tier}</span></td>
                     <td className="px-3"><span className={`chip ${NUDGE[o.nudge].cls}`}>{NUDGE[o.nudge].label}</span></td>
                     <td className={`px-3 num font-semibold ${o.nudge === 'cancelled' ? 'text-ink-soft' : left < 30 * 60 ? 'text-magenta-600' : 'text-ink'}`}>
                       {o.nudge === 'cancelled' ? 'Not dispatching' : mmss(left)}
@@ -105,7 +105,7 @@ export default function Hub() {
             </tbody>
           </table>
         </ScrollRegion>
-        <p className="mt-3 text-ink-soft text-sm">Risk estimate = distance-band RTO rate adjusted for payment mode (illustrative). Timers run live in this demo.</p>
+        <p className="mt-3 text-ink-soft text-sm">Risk = payment mode × distance tier, fitted to the case data pack (illustrative). <a className="underline font-semibold text-plum" href="#/risk">Why this score?</a> Timers run live in this demo.</p>
       </section>
 
       <div className="grid lg:grid-cols-2 gap-6">
