@@ -385,15 +385,51 @@ export function pctTrim(n: number) {
   return `${parseFloat((n * 100).toFixed(2))}%`
 }
 
-// ---------- Order risk (illustrative tiering for the demo manifest) ----------
+// ---------- Explainable risk score (A5) ----------
 
-export function orderRisk(o: { band: 'near' | 'moderate' | 'far'; cod: boolean; firstAddress: boolean }, i: Inputs = defaultInputs()) {
-  const bandRate = { near: i.rtoNear, moderate: i.rtoModerate, far: i.rtoFar }[o.band]
+/**
+ * Estimated RTO = blended rate × payment-mode factor × distance factor.
+ * Factors are fitted to the case data pack's two marginal rates only:
+ *   payment factor  = RTO rate for that payment mode / blended rate  (COD 20%, prepaid 5%)
+ *   distance factor = RTO rate for that distance tier / blended rate  (near 15%, moderate 17%, far 22%)
+ * Averaging over the case's 80/20 payment mix reproduces each distance-tier rate exactly. Averaging over a
+ * distance mix reproduces each payment rate exactly when that mix averages to the blended rate.
+ * First-time address has no rate in the case pack, so it is shown as a flag and never scored.
+ * Illustrative only: not tested against real delivery outcomes.
+ */
+export type Band = 'near' | 'moderate' | 'far'
+
+export function riskFactors(i: Inputs = defaultInputs()) {
   const blended = baseline(i).rtoRate
-  const est = bandRate * ((o.cod ? i.codRto : i.prepaidRto) / blended)
-  const tier: 'High' | 'Medium' | 'Low' = o.cod && (o.band === 'far' || o.firstAddress) ? 'High' : o.cod ? 'Medium' : 'Low'
-  const reasons = [o.cod ? 'COD' : 'Prepaid', o.firstAddress ? 'first-time address' : null, o.band === 'far' ? 'far from hub' : null].filter(Boolean) as string[]
-  return { est, tier, reasons }
+  return {
+    blended,
+    pay: { cod: i.codRto / blended, prepaid: i.prepaidRto / blended },
+    band: { near: i.rtoNear / blended, moderate: i.rtoModerate / blended, far: i.rtoFar / blended } as Record<Band, number>,
+  }
+}
+
+export function orderRisk(o: { band: Band; cod: boolean; firstAddress: boolean }, i: Inputs = defaultInputs()) {
+  const f = riskFactors(i)
+  const payFactor = o.cod ? f.pay.cod : f.pay.prepaid
+  const bandFactor = f.band[o.band]
+  const est = f.blended * payFactor * bandFactor
+  const rounded = Math.round(est * 100) / 100
+  const blendedRounded = Math.round(f.blended * 100) / 100
+  const tier: 'Above average' | 'Average' | 'Below average' =
+    rounded > blendedRounded ? 'Above average' : rounded < blendedRounded ? 'Below average' : 'Average'
+  const reasons = [o.cod ? 'COD' : 'Prepaid', `${o.band} distance`]
+  const flags = o.firstAddress ? ['first-time address (not scored)'] : []
+  return { est, rounded, tier, payFactor, bandFactor, reasons, flags }
+}
+
+/** Whole-percent display with "≈", e.g. 0.2588 -> "≈26%" (no false precision). */
+export function approxPct(x: number) {
+  return `≈${Math.round(x * 100)}%`
+}
+
+/** Factor display, one decimal, e.g. 1.176 -> "1.2×". */
+export function factor(x: number) {
+  return `${x.toFixed(1)}×`
 }
 
 /** Resale price for the buyer, after the Move 2 discount. */
