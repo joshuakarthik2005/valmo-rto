@@ -2,7 +2,7 @@
  * All arithmetic for the prototype. Pure functions only: no React, no DOM.
  * Every number on screen is produced here from src/data/assumptions.ts.
  */
-import { A, ROOT_CAUSES, type AssumptionId } from '../data/assumptions'
+import { A, ROOT_CAUSES, TORNADO_INPUTS, type AssumptionId } from '../data/assumptions'
 
 export type Inputs = Record<AssumptionId, number>
 
@@ -474,4 +474,21 @@ export function scenarioEffects(i: Inputs = defaultInputs()) {
     // No buyer within the window: standard RTO, same cost as today.
     timeout: { amount: 0, kind: 'counted' as const },
   }
+}
+
+// ---------- One-at-a-time sensitivity (tornado) ----------
+
+/**
+ * For each input in TORNADO_INPUTS, the combined net saving (sequenced Move 2) with that input at the bottom and
+ * at the top of its slider range, all other inputs unchanged. Sorted by swing, largest first.
+ * These are assumption ranges, not confidence intervals.
+ */
+export function tornado(c: Case, i: Inputs = defaultInputs()) {
+  const base = combined(c, 'sequenced', i).net
+  return TORNADO_INPUTS.map((id) => {
+    const r = A[id].range!
+    const atMin = combined(c, 'sequenced', { ...i, [id]: r.min }).net
+    const atMax = combined(c, 'sequenced', { ...i, [id]: r.max }).net
+    return { id, label: A[id].label, source: A[id].source, unit: A[id].unit, min: r.min, max: r.max, value: i[id], atMin, atMax, low: Math.min(atMin, atMax), high: Math.max(atMin, atMax), swing: Math.abs(atMax - atMin) }
+  }).sort((a, b) => b.swing - a.swing).map((bar) => ({ ...bar, base }))
 }
