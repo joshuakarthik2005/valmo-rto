@@ -272,7 +272,7 @@ test('verify card: one phone QR on large screens, wrapping repo link, four butto
 })
 
 test('layout: every surface link visible and no sideways page scroll on any route', async ({ page }) => {
-  for (const r of ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture']) {
+  for (const r of ['/', '/customer', '/rider', '/hub', '/resale', '/impact', '/pilot', '/demo', '/architecture', '/scenarios']) {
     await page.goto(`/#${r}`)
     await expect(page.locator('h1').first()).toBeVisible()
     const m = await page.evaluate(() => {
@@ -315,4 +315,32 @@ test('architecture: pipeline, events, data needs, build vs integrate, failure mo
   await expect(page.getByTestId('failure-modes').locator('li')).toHaveCount(7)
   await expect(page.getByText('No integration exists today', { exact: false })).toBeVisible()
   await shot(page, '11-architecture', info.project.name)
+})
+
+test('scenarios: seven failure cases, each with an end state and a model-computed ₹ effect', async ({ page }, info) => {
+  await page.goto('/#/')
+  await page.getByRole('link', { name: 'what happens when things go wrong' }).click()
+  await expect(page).toHaveURL(/#\/scenarios/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What happens when things go wrong')
+  const nav = page.getByRole('navigation', { name: 'Failure cases' })
+  await expect(nav.getByRole('button')).toHaveCount(7)
+  const expected: [RegExp, string, RegExp][] = [
+    [/No reply across the whole ladder/, '−₹1.20', /Dispatched as planned/],
+    [/IVR call fails/, '−₹1.20', /Dispatched as planned/],
+    [/replies after cancelling/, 'up to ₹170', /stays cancelled/],
+    [/Rider offline/, '₹0', /Hub reviews the mark/],
+    [/Same-device resale buyer blocked/, '₹74', /different buyer/],
+    [/Resale buyer cancels/, '−₹5', /Standard RTO/],
+    [/No buyer within 5 business days/, '₹0', /Standard RTO/],
+  ]
+  for (const [title, effect, end] of expected) {
+    await nav.getByRole('button', { name: title }).click()
+    await expect(page.getByTestId('effect')).toHaveText(effect)
+    await expect(page.getByTestId('end-state')).toHaveText(end)
+    await expect(page.getByTestId('scenario')).toContainText('Simulated')
+  }
+  await expect(page.getByText(/Attempt fee protected/)).toHaveCount(0)
+  await nav.getByRole('button', { name: /Rider offline/ }).click()
+  await expect(page.getByText(/Attempt fee protected: ₹15 \(placeholder assumption/)).toBeVisible()
+  await shot(page, '12-scenarios', info.project.name)
 })
